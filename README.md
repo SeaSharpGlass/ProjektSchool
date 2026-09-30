@@ -235,4 +235,5 @@ dotnet test
 - **Verifikace:** Návrh modelu a business logiky byl zkontrolován studentem a ověřen vůči povinnému minimu sylabu PPRO.
 
 ### 10.2 Protokol o zacyklení a selhání agenta
-- *Při prvotní inicializaci nebyl Git v globální `PATH` a síťový disk `U:` hlásil `dubious ownership`. Situace byla vyřešena nalezením Git binárky ve Visual Studiu, nastavením proměnné prostředí a konfigurací `safe.directory` v Gitu.*
+- **Incident 1 (Chybějící PATH a safe.directory):** Při prvotní inicializaci nebyl Git v globální `PATH` a síťový disk `U:` hlásil `dubious ownership`. Situace byla vyřešena nalezením Git binárky ve Visual Studiu, nastavením proměnné prostředí a konfigurací `safe.directory` v Gitu.
+- **Incident 2 (Headless blokace Git Credential Manageru při `git push`):** Při pokusu o spuštění `git push` z background subshellu se proces zablokoval bez výstupu. Příčina: Git Credential Manager v neinteraktivním subshellu agenta nemohl zobrazit přihlašovací dialog k účtu GitHub (`fatal: could not read Username: terminal prompts disabled`). Řešení: Jednorázové spuštění `git push` studentem v interaktivním terminálu pro uložení tokenu do Windows Credential Manageru.
