@@ -1,9 +1,10 @@
-# Semestrální projekt PPRO: ProjektSchool
+# Semestrální projekt PPRO: WarehouseHub (Sklad pro malý e-shop)
 
 > **Předmět:** Pokročilé programování (PPRO) – Zimní semestr 2026/2027  
 > **Fakulta:** Fakulta informatiky a managementu, Univerzita Hradec Králové (FIM UHK)  
 > **Autor:** Jaroslav Drago (`tehnija1`, GitHub: [SeaSharpGlass](https://github.com/SeaSharpGlass))  
 > **Vyučující:** Dominik Palla (`dominik.palla@uhk.cz`)  
+> **Zvolené zadání:** Zadání B – Sklad pro malý e-shop  
 > **Termín odevzdání:** 31. 12. 2026  
 
 ---
@@ -16,67 +17,175 @@ Pravidla pro vývoj a práci s AI agentem jsou definována v souboru [AGENTS.md]
 
 ---
 
-## 2. Výběr zadání
+## 2. Zvolené zadání & Doménová pravidla
 
-*Aktuální stav: Výběr zadání probíhá.*
+### 2.1 Kontext klienta (Zadání B)
+E-shop přerostl původní evidenci v tabulkovém procesoru (Excel). Roste počet objednávek, skladových položek i počet fyzických skladů. Klient potřebuje robustní systém pro správu produktů, skladových zásob a vyřizování zákaznických objednávek s garancí skladové konzistence.
 
-Podle oficiálního zadání PPRO jsou k dispozici 4 varianty pokrývající povinné minimum (min. 5 entit, alespoň jedna vazba M:N):
-
-| Varianta | Název | Klíčové entity & M:N vazba | Specifika klienta |
-|---|---|---|---|
-| **A** | **Rezervace v ordinaci** | Pacient, Lékař, Ordinační hodiny, Návštěva/Rezervace, Výkon<br>*(M:N Návštěva ↔ Výkon)* | Přehled volných termínů lékaře, zákaz duplicitních rezervací na shodný čas, opakované návštěvy a výkony. |
-| **B** | **Sklad pro malý e-shop** | Produkt, Kategorie, Sklad, Skladová zásoba, Objednávka, Položka objednávky<br>*(M:N Produkt ↔ Objednávka)* | Zákaz objednávky při nedostatku zásob, dohledatelnost výdeje z konkrétního skladu. |
-| **C** | **Kurzy vzdělávacího centra** | Kurz, Lektor, Termín kurzu, Student, Zápis/Pořadník<br>*(M:N Student ↔ Termín)* | Hlídání kapacity termínu, automatický pořadník při naplnění, evidence dokončení kurzu. |
-| **D** | **Půjčovna vybavení** | Vybavení, Kategorie, Kus (fyzický exemplář), Zákazník, Výpůjčka, Rezervace<br>*(M:N Výpůjčka ↔ Kus)* | Přehled aktuálně zapůjčených kusů a termínů vrácení, rezervace předem, zákaz kolizí výpůjček. |
+### 2.2 Klíčové business požadavky
+1. **Hierarchie produktů a kategorií:** Produkty jsou jednoznačně zařazeny do kategorií.
+2. **Víceskladové hospodářství:** Evidovat stav zásob konkrétních produktů na více samostatných skladech.
+3. **Objednávky zákazníků s více položkami:** Objednávka se skládá z libovolného počtu různých produktů a jejich množství (vazba M:N).
+4. **Validace dostupnosti zásob (Kritické pravidlo):** Systém **musí striktně odmítnout** objednávku (nebo její položku), pro kterou není na skladech dostatečné množství volných zásob.
+5. **Dohledatelnost výdeje (Auditovatelnost):** Pro každou expedovanou položku objednávky musí být jednoznačně dohledatelné, ze kterého konkrétního skladu byla vyskladněna.
 
 ---
 
-## 3. Architektura a principy návrhu
+## 3. Technologický stack
 
-Aplikace striktně dodržuje **třívrstvou architekturu** s jednosměrným tokem závislostí:
+| Komponenta | Technologie | Důvod volby |
+|---|---|---|
+| **Platforma & Jazyk** | C# / .NET 10 | Silně typovaný jazyk, vysoký výkon, moderní jazykové konstrukce a robustní ekosystém. |
+| **Aplikační framework** | ASP.NET Core Web API | Špičková podpora pro tvorbu RESTful rozhraní, DI kontejneru a middleware. |
+| **ORM & Migrace** | Entity Framework Core (EF Core) | Podpora Code-First přístupu s verzovanými migracemi a silně typovaným dotazováním. |
+| **Databáze** | PostgreSQL 16 (v Dockeru) | Osvědčená open-source relační databáze s plnou ACID podporou a transakční integritou. |
+| **Kontejnerizace** | Docker & Docker Compose | Zajištění jednokrokového a opakovatelného spuštění celé aplikace i databáze. |
+| **Testování** | xUnit + FluentAssertions + Testcontainers | Průmyslový standard pro spolehlivé jednotkové a integrační testy proti reálné DB. |
+
+---
+
+## 4. Architektura systému (Třívrstvá architektura)
+
+Aplikace striktně odděluje zodpovědnosti do tří vrstev se striktně jednosměrným tokem závislostí:
 
 ```mermaid
 graph TD
-    UI[Prezentační vrstva / API Kontrolery] --> BLL[Aplikační & Business logika / Služby]
-    BLL --> DAL[Datová vrstva / Repozitáře]
-    DAL --> DB[(Relační databáze v Dockeru)]
+    subgraph Prezentační vrstva
+        API[ASP.NET Core Web API Controllers & DTOs]
+    end
+
+    subgraph Aplikační vrstva
+        SVC[Business Services & Validátory]
+        IFACE[Interfaces & Doménové modely]
+    end
+
+    subgraph Datová vrstva
+        REPO[EF Core Repositories & Unit of Work]
+        CTX[ApplicationDbContext & Migrace]
+    end
+
+    subgraph Infrastruktura
+        DB[(PostgreSQL v Dockeru)]
+    end
+
+    API --> SVC
+    SVC --> IFACE
+    REPO -.->|Implementuje| IFACE
+    SVC --> REPO
+    REPO --> CTX
+    CTX --> DB
 ```
 
 ### Pravidla vrstev:
-1. **Prezentační vrstva:** Přijímá požadavky, validuje vstupní DTO, volá aplikační služby a vrací odpověď. Nesmí obsahovat business logiku ani SQL dotazy.
-2. **Aplikační vrstva:** Obsahuje veškerou doménovou logiku, validační a rozhodovací pravidla. Řídí transakce. Nemá přímou vazbu na HTTP kontext.
-3. **Datová vrstva:** Poskytuje abstrakci nad databázovým úložištěm přes rozhraní repozitářů. Přístup k DB je řízen migracemi.
+1. **Prezentační vrstva (Controllers):** Přejímá HTTP požadavky, provádí základní formátovou validaci DTOs a deleguje volání do aplikačních služeb. Nikdy nepřistupuje přímo k databázi ani neobsahuje SQL/EF dotazy.
+2. **Aplikační vrstva (Business Logic):** Realizuje doménová pravidla (kontrola skladových zásob, rezervace zboží, kalkulace objednávky, přiřazení skladu pro výdej). Řídí transakční hranice.
+3. **Datová vrstva (Data Access / Persistence):** Implementuje repozitáře, zapouzdřuje `DbContext`, mapuje entity a provádí verzované databázové migrace.
 
 ---
 
-## 4. Datový model
+## 5. Datový model
 
-*(Bude doplněn konkrétní ER diagram po výběru zadání)*
+Datový model obsahuje **7 entit** a **dvě explicitní vazby M:N**, čímž plně překračuje povinné minimum (min. 5 entit, 1 vazba M:N):
 
-- **Požadavek na entity:** Minimálně 5 doménových entit.
-- **Vazba M:N:** Alespoň jedna explicitní vazba N:M reprezentovaná spojovací tabulkou s doplňkovými atributy.
-- **Migrace:** Verzované migrační skripty spravující schéma databáze.
+```mermaid
+erDiagram
+    CATEGORY ||--o{ PRODUCT : "obsahuje"
+    PRODUCT ||--o{ WAREHOUSE_STOCK : "má zásobu"
+    WAREHOUSE ||--o{ WAREHOUSE_STOCK : "eviduje"
+    CUSTOMER ||--o{ ORDER : "vytváří"
+    ORDER ||--o{ ORDER_ITEM : "obsahuje"
+    PRODUCT ||--o{ ORDER_ITEM : "je předmětem"
+    WAREHOUSE ||--o{ ORDER_ITEM : "vydává z"
+
+    CATEGORY {
+        uuid Id PK
+        string Name
+        string Description
+    }
+
+    PRODUCT {
+        uuid Id PK
+        uuid CategoryId FK
+        string SKU
+        string Name
+        string Description
+        decimal Price
+        boolean IsActive
+    }
+
+    WAREHOUSE {
+        uuid Id PK
+        string Code
+        string Name
+        string Location
+    }
+
+    WAREHOUSE_STOCK {
+        uuid Id PK
+        uuid ProductId FK
+        uuid WarehouseId FK
+        int Quantity
+        int ReservedQuantity
+    }
+
+    CUSTOMER {
+        uuid Id PK
+        string Email
+        string FullName
+        string Phone
+        string Address
+    }
+
+    ORDER {
+        uuid Id PK
+        uuid CustomerId FK
+        string OrderNumber
+        string Status
+        decimal TotalPrice
+        timestamp CreatedAt
+    }
+
+    ORDER_ITEM {
+        uuid Id PK
+        uuid OrderId FK
+        uuid ProductId FK
+        uuid WarehouseId FK
+        int Quantity
+        decimal UnitPrice
+    }
+```
+
+### Popis klíčových entit a vazeb:
+- **`Category` (Kategorie):** Číselník kategorií pro kategorizaci produktů (1:N s `Product`).
+- **`Product` (Produkt):** Zboží nabízené v e-shopu (cena, SKU, název).
+- **`Warehouse` (Sklad):** Fyzické skladovací prostory klienta.
+- **`WarehouseStock` (Skladová zásoba – Vazba M:N mezi `Product` a `Warehouse`):** Eviduje aktuální počet kusů daného produktu na konkrétním skladu a rezervované množství.
+- **`Customer` (Zákazník):** Odběratel (pouze syntetická testovací data).
+- **`Order` (Objednávka):** Hlavička objednávky evidující zákazníka, celkovou částku, čas vytvoření a stav (např. *Draft*, *Confirmed*, *Dispatched*, *Cancelled*).
+- **`OrderItem` (Položka objednávky – Vazba M:N mezi `Order` a `Product`):** Spojovací entita objednávky a produktu uchovávající počet kusů, historickou jednotkovou cenu v době nákupu a **odkaz na `WarehouseId`**, ze kterého bylo/bude zboží expedováno (splnění podmínky dohledatelnosti).
 
 ---
 
-## 5. Seznam architektonických rozhodnutí (ADR)
+## 6. Seznam architektonických rozhodnutí (ADR)
 
 | ID | Datum | Kontext | Rozhodnutí | Důvod & Důsledky |
 |---|---|---|---|---|
-| **ADR-001** | 2026-09-30 | Nastavení workflow a pravidel AI agenta | Vytvořen [AGENTS.md](file:///u:/ppro2026/AGENTS.md). Zavedena povinnost commitovat vždy s `-m`, striktní zákaz auto-push bez explicitního pokynu, a dokumentační brána před commitem. | Zajišťuje plnou kontrolu studenta nad repozitářem a plnění podmínek sylabu PPRO. |
+| **ADR-001** | 2026-09-30 | Nastavení workflow a pravidel AI agenta | Vytvořen [AGENTS.md](file:///u:/ppro2026/AGENTS.md). Zavedena povinnost commitovat vždy s `-m`, striktní zákaz auto-push bez explicitního pokynu a dokumentační brána před commitem. | Zajišťuje plnou kontrolu studenta nad repozitářem a plnění podmínek sylabu PPRO. |
 | **ADR-002** | 2026-09-30 | Vytvoření technické dokumentace projektu | `README.md` je ustanoven jako živý Single Source of Truth. | Zaručuje konzistenci technických informací v čase před každým commitem a slouží jako podklad pro PDF zprávu. |
 | **ADR-003** | 2026-09-30 | Ochrana citlivých údajů | Založen [.gitignore](file:///u:/ppro2026/.gitignore) zakazující sledování `.env` souborů a dočasných artefaktů. | Splnění bezpečnostního požadavku zadání (žádná hesla ani privátní data v repozitáři). |
+| **ADR-004** | 2026-09-30 | Výběr semestrálního zadání | Zvoleno **Zadání B: Sklad pro malý e-shop**. | Zadání má přirozený doménový model, logické M:N relace a reálná business pravidla (kontrola zásob a audit výdeje). |
+| **ADR-005** | 2026-09-30 | Volba technologického stacku | Zvolen **C# / .NET 10 + EF Core + PostgreSQL v Dockeru**. | Standardní podnikový stack odpovídající profilu předmětu, robustní migrační nástroje a podpora kontejnerizace. |
 
 ---
 
-## 6. Návod ke spuštění (Getting Started)
+## 7. Návod ke spuštění (Getting Started)
 
 ### Prerekvizity
-- Docker & Docker Compose
+- .NET SDK 10 (nebo .NET 9 runtime)
+- Docker Desktop / Docker Engine s podporou Docker Compose
 - Git
 
 ### Postup spuštění
-*(Bude zkompletováno spolu s implementací `docker-compose.yml`)*
 ```bash
 # 1. Klonování repozitáře
 git clone https://github.com/SeaSharpGlass/ProjektSchool.git
@@ -85,35 +194,45 @@ cd ProjektSchool
 # 2. Vytvoření lokální konfigurace
 cp .env.example .env
 
-# 3. Spuštění kontejnerů
-docker compose up -d
+# 3. Spuštění kontejnerů (databáze + migrace + aplikace)
+docker compose up -d --build
+
+# 4. Dostupnost služeb
+# - API & Swagger / OpenAPI: http://localhost:5000/swagger
+# - Databáze PostgreSQL: localhost:5432 (databáze: warehouse_db)
 ```
 
 ---
 
-## 7. Testování
+## 8. Testování
 
-- **Jednotkové testy (Unit Tests):** Testují doménová pravidla a aplikační logiku izolovaně od databáze.
-- **Integrační testy (Integration Tests):** Testují přístup k datům a transakční integritu proti reálné instanci databáze.
+- **Jednotkové testy (Unit Tests):** Testují validační pravidla odmítnutí objednávky při nedostatku skladových zásob a logiku kalkulace.
+- **Integrační testy (Integration Tests):** Testují transakční zápis objednávky, odečet zásob ze skladu a dohledatelnost výdeje proti reálné PostgreSQL databázi.
+
+Spuštění testů:
+```bash
+dotnet test
+```
 
 ---
 
-## 8. Historie vývoje & Changelog
+## 9. Historie vývoje & Changelog
 
 - **2026-09-30 (1. cvičení):**
   - Inicializace Git repozitáře na větvi `main`.
   - Propojení s remote repozitářem na GitHubu ([SeaSharpGlass/ProjektSchool](https://github.com/SeaSharpGlass/ProjektSchool)).
-  - Vytvoření konfiguračních pravidel agenta [AGENTS.md](file:///u:/ppro2026/AGENTS.md) a nastavení `.gitignore`.
-  - Vytvoření živého technického dokumentu a přehledu zadání v [README.md](file:///u:/ppro2026/README.md).
+  - Vytvoření konfiguračních pravidel agenta v [AGENTS.md](file:///u:/ppro2026/AGENTS.md) a nastavení [.gitignore](file:///u:/ppro2026/.gitignore).
+  - Výběr **Zadání B: Sklad pro malý e-shop** a technologického stacku **.NET / C# + PostgreSQL**.
+  - Zpracování detailního návrhu doménového a relačního modelu (7 entit, 2 vazby M:N) a třívrstvé architektury v [README.md](file:///u:/ppro2026/README.md).
 
 ---
 
-## 9. Záznamy pro technickou dokumentaci (docs/)
+## 10. Záznamy pro technickou dokumentaci (docs/)
 
-### 9.1 Přiznání práce s AI
+### 10.1 Přiznání práce s AI
 - **Nástroj:** Google Antigravity (Gemini 3.8 Flash)
-- **Rozsah použití:** Asistence s architekturou, šablonami dokumentace a pravidly workflow.
-- **Verifikace:** Veškerá pravidla a texty dokumentace zkontrolovány a odsouhlaseny studentem.
+- **Rozsah použití:** Konzultace výběru zadání, návrh datového modelu a ER diagramu, strukturování technické dokumentace a ADR.
+- **Verifikace:** Návrh modelu a business logiky byl zkontrolován studentem a ověřen vůči povinnému minimu sylabu PPRO.
 
-### 9.2 Protokol o zacyklení a selhání agenta
+### 10.2 Protokol o zacyklení a selhání agenta
 - *Při prvotní inicializaci nebyl Git v globální `PATH` a síťový disk `U:` hlásil `dubious ownership`. Situace byla vyřešena nalezením Git binárky ve Visual Studiu, nastavením proměnné prostředí a konfigurací `safe.directory` v Gitu.*
