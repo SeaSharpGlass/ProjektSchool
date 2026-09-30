@@ -175,17 +175,26 @@ erDiagram
 | **ADR-003** | 2026-09-30 | Ochrana citlivých údajů | Založen [.gitignore](file:///u:/ppro2026/.gitignore) zakazující sledování `.env` souborů a dočasných artefaktů. | Splnění bezpečnostního požadavku zadání (žádná hesla ani privátní data v repozitáři). |
 | **ADR-004** | 2026-09-30 | Výběr semestrálního zadání | Zvoleno **Zadání B: Sklad pro malý e-shop**. | Zadání má přirozený doménový model, logické M:N relace a reálná business pravidla (kontrola zásob a audit výdeje). |
 | **ADR-005** | 2026-09-30 | Volba technologického stacku | Zvolen **C# / .NET 10 + EF Core + PostgreSQL v Dockeru**. | Standardní podnikový stack odpovídající profilu předmětu, robustní migrační nástroje a podpora kontejnerizace. |
+| **ADR-006** | 2026-09-30 | Příprava klientského rozhraní a implementační roadmapy | Vytvořen 8fázový implementační plán a samostatné klientské drátové demo v HTML/CSS/JS pro entitu `Product`. | Umožňuje předvést klientovi UX a simulaci klíčových business pravidel (odmítnutí objednávky při nedostatku zásob) ještě před backendovou implementací. |
 
 ---
 
 ## 7. Návod ke spuštění (Getting Started)
 
-### Prerekvizity
-- .NET SDK 10 (nebo .NET 9 runtime)
-- Docker Desktop / Docker Engine s podporou Docker Compose
-- Git
+### 7.1 Klientské drátové demo (Jediná entita: Produkt)
+Pro okamžitou klientskou prezentaci bez nutnosti instalace databáze:
+- Otevřete soubor [demo/index.html](file:///u:/ppro2026/demo/index.html) přímo ve vašem webovém prohlížeči (např. Google Chrome nebo Microsoft Edge), nebo v terminálu spusťte:
+  ```powershell
+  Start-Process "u:\ppro2026\demo\index.html"
+  ```
+- **Funkce dema:**
+  - Plná správa produktů (přidání, editace, smazání, filtrace, hledání).
+  - Přehled rozpadu skladových zásob podle jednotlivých skladů (Praha, Brno, Ostrava).
+  - Tlačítko **"Simulovat nákup klienta"** demonstrující klíčová doménová pravidla:
+    * *Úspěšné vyskladnění* s uvedením konkrétního skladu, ze kterého se zboží vydalo.
+    * *Striktní odmítnutí objednávky*, pokud skladové zásoby nestačí.
 
-### Postup spuštění
+### 7.2 Backend & Databáze (PostgreSQL v Dockeru)
 ```bash
 # 1. Klonování repozitáře
 git clone https://github.com/SeaSharpGlass/ProjektSchool.git
@@ -224,6 +233,8 @@ dotnet test
   - Vytvoření konfiguračních pravidel agenta v [AGENTS.md](file:///u:/ppro2026/AGENTS.md) a nastavení [.gitignore](file:///u:/ppro2026/.gitignore).
   - Výběr **Zadání B: Sklad pro malý e-shop** a technologického stacku **.NET / C# + PostgreSQL**.
   - Zpracování detailního návrhu doménového a relačního modelu (7 entit, 2 vazby M:N) a třívrstvé architektury v [README.md](file:///u:/ppro2026/README.md).
+  - Zpracování 8fázového implementačního plánu semestrálního projektu.
+  - Vytvoření interaktivního klientského drátového dema pro správu entity `Product` ([demo/index.html](file:///u:/ppro2026/demo/index.html), [demo/style.css](file:///u:/ppro2026/demo/style.css), [demo/app.js](file:///u:/ppro2026/demo/app.js)).
 
 ---
 
@@ -231,9 +242,10 @@ dotnet test
 
 ### 10.1 Přiznání práce s AI
 - **Nástroj:** Google Antigravity (Gemini 3.8 Flash)
-- **Rozsah použití:** Konzultace výběru zadání, návrh datového modelu a ER diagramu, strukturování technické dokumentace a ADR.
+- **Rozsah použití:** Konzultace výběru zadání, návrh datového modelu a ER diagramu, strukturování technické dokumentace a ADR, sestavení harmonogramu fází a tvorba klientského wireframe prototypu.
 - **Verifikace:** Návrh modelu a business logiky byl zkontrolován studentem a ověřen vůči povinnému minimu sylabu PPRO.
 
 ### 10.2 Protokol o zacyklení a selhání agenta
 - **Incident 1 (Chybějící PATH a safe.directory):** Při prvotní inicializaci nebyl Git v globální `PATH` a síťový disk `U:` hlásil `dubious ownership`. Situace byla vyřešena nalezením Git binárky ve Visual Studiu, nastavením proměnné prostředí a konfigurací `safe.directory` v Gitu.
 - **Incident 2 (Headless blokace Git Credential Manageru při `git push`):** Při pokusu o spuštění `git push` z background subshellu se proces zablokoval bez výstupu. Příčina: Git Credential Manager v neinteraktivním subshellu agenta nemohl zobrazit přihlašovací dialog k účtu GitHub (`fatal: could not read Username: terminal prompts disabled`). Řešení: Jednorázové spuštění `git push` studentem v interaktivním terminálu pro uložení tokenu do Windows Credential Manageru.
+- **Incident 3 (Selhání inicializace interního prohlížeče Playwright):** Při snaze automaticky zvalidovat vzhled dema přes `browser_subagent` selhal nástroj `open_browser_url`, protože CDN Playwright vrátila HTTP 404 pro ovladač `playwright-1.57.0-win32_x64.zip`. Řešení: Otevření a testování dema přímo v systémovém prohlížeči uživatele (Chrome / Edge).
