@@ -13,7 +13,7 @@
 <body>
   <!-- App Container -->
   <div class="app-layout">
-    <!-- Sidebar Navigation -->
+    <!-- Sidebar Navigation: Ostrý dok s ikonami a popiskem při najetí (hover tooltip) -->
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-icon">
@@ -23,35 +23,79 @@
             <line x1="12" y1="22.08" x2="12" y2="12"></line>
           </svg>
         </div>
-        <div class="brand-text">
-          <span class="brand-name">WarehouseHub</span>
-          <span class="brand-badge">Drátové Demo</span>
+        <div class="nav-tooltip brand-tooltip">
+          <strong class="nav-tooltip-title">WarehouseHub</strong>
+          <span class="nav-tooltip-desc">Skladový systém • Zadání B</span>
         </div>
       </div>
 
-      <div class="nav-section-title">Moduly systému</div>
       <nav class="nav-menu">
-        <a href="#products" class="nav-item active" id="nav-products">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-          <span>Produkty & Zásoby</span>
-          <span class="nav-badge" id="nav-count-badge">6</span>
+        <!-- Záložka 1: Produkty & Zásoby -->
+        <a href="#products" class="nav-item active" id="nav-products" aria-label="Produkty & Zásoby">
+          <div class="nav-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span class="nav-mini-badge" id="nav-count-badge">6</span>
+          </div>
+          <div class="nav-tooltip">
+            <span class="nav-tooltip-title">Produkty & Zásoby</span>
+            <span class="nav-tooltip-desc">Katalog produktů, správa cen a stav zásob</span>
+            <span class="nav-tooltip-meta">Záložka 1 • Klikněte pro zobrazení</span>
+          </div>
         </a>
-        <a href="#warehouses" class="nav-item" id="nav-warehouses">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-          <span>Sklady (3 lokace)</span>
-          <span class="nav-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">3</span>
+
+        <!-- Záložka 2: Sklady (3 lokace) -->
+        <a href="#warehouses" class="nav-item" id="nav-warehouses" aria-label="Sklady (3 lokace)">
+          <div class="nav-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span class="nav-mini-badge badge-emerald">3</span>
+          </div>
+          <div class="nav-tooltip">
+            <span class="nav-tooltip-title">Sklady (3 lokace)</span>
+            <span class="nav-tooltip-desc">Praha (W-PRG), Brno (W-BRN), Ostrava (W-OST)</span>
+            <span class="nav-tooltip-meta">Záložka 2 • M:N rozpad & meziskladové převody</span>
+          </div>
         </a>
-        <a href="#orders" class="nav-item" id="nav-orders">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-          <span>Objednávky (M:N)</span>
-          <span class="nav-badge" id="nav-orders-badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa;">3</span>
+
+        <!-- Záložka 3: Objednávky (M:N) -->
+        <a href="#orders" class="nav-item" id="nav-orders" aria-label="Objednávky (M:N)">
+          <div class="nav-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span class="nav-mini-badge badge-blue" id="nav-orders-badge">3</span>
+          </div>
+          <div class="nav-tooltip">
+            <span class="nav-tooltip-title">Objednávky (M:N)</span>
+            <span class="nav-tooltip-desc">Vícepoložkové objednávky, rezervace a audit expedice</span>
+            <span class="nav-tooltip-meta">Záložka 3 • Kontrola dostupnosti</span>
+          </div>
         </a>
       </nav>
 
       <div class="sidebar-footer">
-        <div class="demo-card">
-          <div class="demo-card-title">Klientská prezentace</div>
-          <p class="demo-card-text">Ukázka správy jedné klíčové entity (<strong>Produkt</strong>) a víceskladového rozpadu (<strong>Sklad & Zásoby M:N</strong>) dle zadání PPRO.</p>
+        <div class="nav-item nav-item-info">
+          <div class="nav-icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+          </div>
+          <div class="nav-tooltip">
+            <span class="nav-tooltip-title">Klientská prezentace PPRO</span>
+            <span class="nav-tooltip-desc">Zadání B: Sklad pro malý e-shop (FIM UHK 2026/2027)</span>
+            <span class="nav-tooltip-meta">Student: Jaroslav Drago</span>
+          </div>
         </div>
       </div>
     </aside>

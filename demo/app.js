@@ -18,7 +18,7 @@ const warehouses = [
     name: "Centrální sklad Praha",
     location: "Praha - Ruzyně",
     type: "Centrální distribuční sklad",
-    accent: "#3b82f6",
+    accent: "#F9B9F2",
     capacity: 100,
     badgeClass: "praha"
   },
@@ -28,7 +28,7 @@ const warehouses = [
     name: "Regionální sklad Brno",
     location: "Brno - Slatina",
     type: "Regionální pobočka pro Moravu",
-    accent: "#10b981",
+    accent: "#83A0A0",
     capacity: 60,
     badgeClass: "brno"
   },
@@ -38,7 +38,7 @@ const warehouses = [
     name: "Distribuční centrum Ostrava",
     location: "Ostrava - Mošnov",
     type: "Distribuční centrum pro Slezsko",
-    accent: "#8b5cf6",
+    accent: "#BCA0BC",
     capacity: 50,
     badgeClass: "ostrava"
   }

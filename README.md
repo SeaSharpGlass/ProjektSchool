@@ -176,6 +176,7 @@ erDiagram
 | **ADR-004** | 2026-09-30 | Výběr semestrálního zadání | Zvoleno **Zadání B: Sklad pro malý e-shop**. | Zadání má přirozený doménový model, logické M:N relace a reálná business pravidla (kontrola zásob a audit výdeje). |
 | **ADR-005** | 2026-09-30 | Volba technologického stacku | Zvolen **C# / .NET 10 + EF Core + PostgreSQL v Dockeru**. | Standardní podnikový stack odpovídající profilu předmětu, robustní migrační nástroje a podpora kontejnerizace. |
 | **ADR-006** | 2026-09-30 | Příprava klientského rozhraní a implementační roadmapy | Vytvořen 8fázový implementační plán a samostatné klientské drátové demo v HTML/CSS/JS pro entitu `Product`. | Umožňuje předvést klientovi UX a simulaci klíčových business pravidel (odmítnutí objednávky při nedostatku zásob) ještě před backendovou implementací. |
+| **ADR-007** | 2026-10-07 | Úprava vizuálního stylu a navigace klientského dema | Přechod na striktně geometrický ostrý design (`border-radius: 0`, brutalistické stíny) a 5barevnou paletu (`#F9B9F2`, `#BCA0BC`, `#2B3D41`, `#4C5F6B`, `#83A0A0`). Hlavní menu přepracováno na kompaktní postranní dok s ikonami a vysouvacími popisky (tooltips) při najetí myší. | Zvětšení užitečné plochy pro datové tabulky, moderní ostrá identita a okamžitá kontextová nápověda pro jednotlivé záložky. |
 
 ---
 
@@ -188,6 +189,10 @@ Pro okamžitou klientskou prezentaci bez nutnosti instalace databáze:
   Start-Process "u:\ppro2026\demo\index.html"
   ```
 - **Funkce dema:**
+- **Vizuální styl & Navigace:**
+    * **Striktně ostrý geometrický design:** Nulové zaoblení rohů (`border-radius: 0`), ostré brutalistické stínování a úderné ohraničení prvků.
+    * **Barevná paleta (5 odstínů):** Růžový akcent `#F9B9F2`, světle fialová `#BCA0BC`, hluboká břidlicová `#2B3D41`, ocelová struktura `#4C5F6B` a šedozelená `#83A0A0`.
+    * **Kompaktní postranní dok (Icon Dock):** Tlačítková navigace s ikonami a vysouvacími tooltipy při najetí myší (hover) zobrazujícími název a popis modulu bez zbytečného zabírání vodorovného prostoru pro datové tabulky.
   - **Modul Produkty & Zásoby:** Plná správa produktů (přidání, editace, smazání, fulltextové vyhledávání, filtrace dle kategorie a dle konkrétního skladu). Rychlé naskladnění / vyskladnění (`+1 ks` / `-1 ks`) s validací nezápornosti zásob.
   - **Modul Sklady (3 lokace dle Zadání B):** Samostatný interaktivní pohled na víceskladové hospodářství:
     * Karty 3 fyzických skladů: **Centrální sklad Praha (W-PRG)**, **Regionální sklad Brno (W-BRN)**, **Distribuční centrum Ostrava (W-OST)** s metrikami počtu položek, fyzické zásoby, hodnoty a ukazatele využití kapacity.
@@ -236,6 +241,10 @@ dotnet test
 ## 9. Historie vývoje & Changelog
 
 - **2026-10-07:**
+  - **Redesign UI & Nová vizuální identita:**
+    * Přechod na striktně geometrický ostrý styl (`border-radius: 0 !important`) a ostré brutalistické stíny.
+    * Aplikace 5barevné palety klienta: `#F9B9F2` (akcentní růžová), `#BCA0BC` (světle fialová / štítky), `#2B3D41` (hlavní tmavé pozadí), `#4C5F6B` (struktury a rámečky), `#83A0A0` (šedozelená / stavové prvky a texty).
+    * Přepracování hlavní navigace do kompaktního postranního doku tlačítek s ikonami a kontextovými tooltipy při najetí myší (hover) pro maximalizaci vodorovného prostoru pro datové tabulky.
   - Implementace samostatného modulu **Objednávky (M:N)** dle Zadání B (tvorba vícepoložkových objednávek, vazba `OrderItem` na `Product` a `WarehouseId`).
   - Zavedení striktního pravidla odmítnutí objednávky při nedostatku volných zásob na zvoleném skladu expedice.
   - Implementace životního cyklu objednávky (rezervace kusů při potvrzení, definitivní odpis při expedici, uvolnění rezervací při stornu).
