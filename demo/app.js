@@ -238,6 +238,7 @@ function render() {
         </td>
         <td class="text-right">
           <div class="table-actions">
+            <button class="btn btn-secondary btn-sm quick-stock-btn" onclick="quickAdjustStock('${p.id}', -1)" title="Odebrat 1 ks ze skladu" ${total === 0 ? "disabled" : ""}>-1 ks</button>
             <button class="btn btn-secondary btn-sm quick-stock-btn" onclick="quickAdjustStock('${p.id}', 1)" title="Přijmout 1 ks na centrální sklad Praha">+1 ks</button>
             <button class="btn-icon" onclick="openModal('${p.id}')" title="Upravit produkt">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
@@ -381,13 +382,34 @@ window.deleteProduct = function(id) {
   }
 };
 
-// Rychlá úprava stavu skladu (+1 ks na sklad Praha)
+// Rychlá úprava stavu skladu (+1 / -1 ks)
 window.quickAdjustStock = function(id, amount) {
   const p = products.find(item => item.id === id);
   if (!p) return;
 
-  p.stocks.praha = (p.stocks.praha || 0) + amount;
-  showToast(`Naskladněn +${amount} ks na Sklad Praha pro: ${p.name}`, "info");
+  if (amount < 0) {
+    const total = getTotalStock(p);
+    if (total <= 0) {
+      showToast(`Nelze odebrat kus – produkt "${p.name}" je zcela vyprodán.`, "warning");
+      return;
+    }
+
+    // Přednostně odebrat z centrálního skladu Praha, případně z dalšího skladu s dostupnou zásobou
+    if ((p.stocks.praha || 0) > 0) {
+      p.stocks.praha += amount;
+      showToast(`Odebrán 1 ks ze Skladu Praha pro: ${p.name}`, "info");
+    } else if ((p.stocks.brno || 0) > 0) {
+      p.stocks.brno += amount;
+      showToast(`Odebrán 1 ks ze Skladu Brno pro: ${p.name}`, "info");
+    } else if ((p.stocks.ostrava || 0) > 0) {
+      p.stocks.ostrava += amount;
+      showToast(`Odebrán 1 ks ze Skladu Ostrava pro: ${p.name}`, "info");
+    }
+  } else {
+    p.stocks.praha = (p.stocks.praha || 0) + amount;
+    showToast(`Naskladněn +${amount} ks na Sklad Praha pro: ${p.name}`, "info");
+  }
+
   render();
 };
 

@@ -190,6 +190,7 @@ Pro okamžitou klientskou prezentaci bez nutnosti instalace databáze:
 - **Funkce dema:**
   - Plná správa produktů (přidání, editace, smazání, filtrace, hledání).
   - Přehled rozpadu skladových zásob podle jednotlivých skladů (Praha, Brno, Ostrava).
+  - Rychlé operace naskladnění a vyskladnění (`+1 ks` / `-1 ks`) přímo z tabulky s validací nezápornosti zásob.
   - Tlačítko **"Simulovat nákup klienta"** demonstrující klíčová doménová pravidla:
     * *Úspěšné vyskladnění* s uvedením konkrétního skladu, ze kterého se zboží vydalo.
     * *Striktní odmítnutí objednávky*, pokud skladové zásoby nestačí.
@@ -227,6 +228,9 @@ dotnet test
 
 ## 9. Historie vývoje & Changelog
 
+- **2026-10-07:**
+  - Rozšíření klientského dema: přidáno rychlé akční tlačítko `-1 ks` vedle `+1 ks` v tabulce produktů pro rychlé vyskladnění.
+  - Zabezpečení proti záporným skladovým zásobám (ochrana proti poklesu pod 0 ks a vizuální deaktivace tlačítka při nulové zásobě).
 - **2026-09-30 (1. cvičení):**
   - Inicializace Git repozitáře na větvi `main`.
   - Propojení s remote repozitářem na GitHubu ([SeaSharpGlass/ProjektSchool](https://github.com/SeaSharpGlass/ProjektSchool)).

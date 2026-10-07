@@ -288,6 +288,14 @@ body {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
 .btn-sm {
   padding: 6px 12px;
   font-size: 0.78rem;
@@ -600,6 +608,8 @@ body {
   display: flex;
   gap: 6px;
   justify-content: flex-end;
+  align-items: center;
+  white-space: nowrap;
 }
 
 .quick-stock-btn {
