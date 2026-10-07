@@ -188,9 +188,12 @@ Pro okamžitou klientskou prezentaci bez nutnosti instalace databáze:
   Start-Process "u:\ppro2026\demo\index.html"
   ```
 - **Funkce dema:**
-  - Plná správa produktů (přidání, editace, smazání, filtrace, hledání).
-  - Přehled rozpadu skladových zásob podle jednotlivých skladů (Praha, Brno, Ostrava).
-  - Rychlé operace naskladnění a vyskladnění (`+1 ks` / `-1 ks`) přímo z tabulky s validací nezápornosti zásob.
+  - **Modul Produkty & Zásoby:** Plná správa produktů (přidání, editace, smazání, fulltextové vyhledávání, filtrace dle kategorie a dle konkrétního skladu). Rychlé naskladnění / vyskladnění (`+1 ks` / `-1 ks`) s validací nezápornosti zásob.
+  - **Modul Sklady (3 lokace dle Zadání B):** Samostatný interaktivní pohled na víceskladové hospodářství:
+    * Karty 3 fyzických skladů: **Centrální sklad Praha (W-PRG)**, **Regionální sklad Brno (W-BRN)**, **Distribuční centrum Ostrava (W-OST)** s metrikami počtu položek, fyzické zásoby, hodnoty a ukazatele využití kapacity.
+    * Rozpad skladových zásob (vazba M:N `WarehouseStock`): rozlišení celkové fyzické zásoby (`Quantity`), rezervovaného množství (`ReservedQuantity`) a volného množství k okamžitému výdeji.
+    * Rychlé úpravy skladového stavu přímo pro konkrétní zvolený sklad.
+    * **Meziskladový převod zboží:** Funkce přesunu kusů mezi libovolnými sklady s automatickou validací dostupné volné zásoby na zdrojovém skladu.
   - Tlačítko **"Simulovat nákup klienta"** demonstrující klíčová doménová pravidla:
     * *Úspěšné vyskladnění* s uvedením konkrétního skladu, ze kterého se zboží vydalo.
     * *Striktní odmítnutí objednávky*, pokud skladové zásoby nestačí.
@@ -229,8 +232,11 @@ dotnet test
 ## 9. Historie vývoje & Changelog
 
 - **2026-10-07:**
-  - Rozšíření klientského dema: přidáno rychlé akční tlačítko `-1 ks` vedle `+1 ks` v tabulce produktů pro rychlé vyskladnění.
-  - Zabezpečení proti záporným skladovým zásobám (ochrana proti poklesu pod 0 ks a vizuální deaktivace tlačítka při nulové zásobě).
+  - Implementace samostatného modulu **Sklady (3 lokace)** dle Zadání B (Centrální sklad Praha W-PRG, Regionální sklad Brno W-BRN, Distribuční centrum Ostrava W-OST).
+  - Vytvoření přehledových karet skladů s ukazateli zaplnění kapacity, počtu položek a celkové hodnoty zboží na skladě.
+  - Detailní zobrazení vazby M:N (`WarehouseStock`) s evidencí fyzické zásoby, rezervovaného množství a volných kusů k výdeji.
+  - Přidán filtr podle skladu do katalogu produktů a interaktivní dialog meziskladových převodů zboží (Transfer modal).
+  - Rozšíření klientského dema: přidáno rychlé akční tlačítko `-1 ks` vedle `+1 ks` v tabulce produktů s ochranou proti záporným zásobám.
 - **2026-09-30 (1. cvičení):**
   - Inicializace Git repozitáře na větvi `main`.
   - Propojení s remote repozitářem na GitHubu ([SeaSharpGlass/ProjektSchool](https://github.com/SeaSharpGlass/ProjektSchool)).

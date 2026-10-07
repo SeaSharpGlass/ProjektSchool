@@ -36,9 +36,10 @@
           <span>Produkty & Zásoby</span>
           <span class="nav-badge" id="nav-count-badge">6</span>
         </a>
-        <a href="#warehouses" class="nav-item disabled" title="Bude součástí Fáze 4">
+        <a href="#warehouses" class="nav-item" id="nav-warehouses">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
           <span>Sklady (3 lokace)</span>
+          <span class="nav-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">3</span>
         </a>
         <a href="#orders" class="nav-item disabled" title="Bude součástí Fáze 5">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
@@ -49,136 +50,230 @@
       <div class="sidebar-footer">
         <div class="demo-card">
           <div class="demo-card-title">Klientská prezentace</div>
-          <p class="demo-card-text">Ukázka správy jedné klíčové entity (<strong>Produkt</strong>) a víceskladového rozpadu před napojením na .NET API a PostgreSQL.</p>
+          <p class="demo-card-text">Ukázka správy jedné klíčové entity (<strong>Produkt</strong>) a víceskladového rozpadu (<strong>Sklad & Zásoby M:N</strong>) dle zadání PPRO.</p>
         </div>
       </div>
     </aside>
 
     <!-- Main Content Area -->
     <main class="main-content">
-      <!-- Top Bar -->
-      <header class="topbar">
-        <div>
-          <h1 class="page-title">Správa produktů & skladových zásob</h1>
-          <p class="page-subtitle">Demonstrace klientského rozhraní pro evidenci zboží a kontrolu dostupnosti</p>
-        </div>
-        <div class="topbar-actions">
-          <button class="btn btn-secondary" id="btn-simulate-order">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-            <span>Simulovat nákup klienta</span>
-          </button>
-          <button class="btn btn-primary" id="btn-open-create-modal">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            <span>Přidat nový produkt</span>
-          </button>
-        </div>
-      </header>
+      <!-- POHLED 1: Produkty & Zásoby -->
+      <section id="view-products" class="view-panel">
+        <!-- Top Bar -->
+        <header class="topbar">
+          <div>
+            <h1 class="page-title">Správa produktů & skladových zásob</h1>
+            <p class="page-subtitle">Demonstrace klientského rozhraní pro evidenci zboží a kontrolu dostupnosti</p>
+          </div>
+          <div class="topbar-actions">
+            <button class="btn btn-secondary" id="btn-simulate-order">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+              <span>Simulovat nákup klienta</span>
+            </button>
+            <button class="btn btn-primary" id="btn-open-create-modal">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <span>Přidat nový produkt</span>
+            </button>
+          </div>
+        </header>
 
-      <!-- KPI Metrics Cards -->
-      <section class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-icon blue">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+        <!-- KPI Metrics Cards -->
+        <section class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon blue">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">Aktivní produkty</span>
+              <span class="metric-value" id="kpi-total-products">0</span>
+            </div>
           </div>
-          <div class="metric-info">
-            <span class="metric-label">Aktivní produkty</span>
-            <span class="metric-value" id="kpi-total-products">0</span>
-          </div>
-        </div>
 
-        <div class="metric-card">
-          <div class="metric-icon emerald">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+          <div class="metric-card">
+            <div class="metric-icon emerald">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">Celkem kusů na skladech</span>
+              <span class="metric-value" id="kpi-total-stock">0</span>
+            </div>
           </div>
-          <div class="metric-info">
-            <span class="metric-label">Celkem kusů na skladech</span>
-            <span class="metric-value" id="kpi-total-stock">0</span>
-          </div>
-        </div>
 
-        <div class="metric-card">
-          <div class="metric-icon amber">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          <div class="metric-card">
+            <div class="metric-icon amber">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">Kritické zásoby (&lt; 10 ks)</span>
+              <span class="metric-value" id="kpi-low-stock">0</span>
+            </div>
           </div>
-          <div class="metric-info">
-            <span class="metric-label">Kritické zásoby (&lt; 10 ks)</span>
-            <span class="metric-value" id="kpi-low-stock">0</span>
-          </div>
-        </div>
 
-        <div class="metric-card">
-          <div class="metric-icon purple">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          <div class="metric-card">
+            <div class="metric-icon purple">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">Celková hodnota skladu</span>
+              <span class="metric-value" id="kpi-total-value">0 Kč</span>
+            </div>
           </div>
-          <div class="metric-info">
-            <span class="metric-label">Celková hodnota skladu</span>
-            <span class="metric-value" id="kpi-total-value">0 Kč</span>
+        </section>
+
+        <!-- Filter & Search Toolbar -->
+        <section class="toolbar-card">
+          <div class="search-input-wrapper">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="search-input" placeholder="Vyhledat produkt podle názvu nebo SKU..." autocomplete="off">
           </div>
-        </div>
+
+          <div class="filter-controls">
+            <div class="select-wrapper">
+              <select id="filter-category">
+                <option value="ALL">Všechny kategorie</option>
+                <option value="Elektronika">Elektronika</option>
+                <option value="Příslušenství">Příslušenství</option>
+                <option value="Audio">Audio</option>
+                <option value="Kancelář">Kancelář</option>
+              </select>
+            </div>
+
+            <div class="select-wrapper">
+              <select id="filter-warehouse">
+                <option value="ALL">Všechny sklady</option>
+                <option value="praha">Centrální sklad Praha (W-PRG)</option>
+                <option value="brno">Regionální sklad Brno (W-BRN)</option>
+                <option value="ostrava">Distribuční centrum Ostrava (W-OST)</option>
+              </select>
+            </div>
+
+            <div class="select-wrapper">
+              <select id="filter-stock">
+                <option value="ALL">Všechny stavy zásob</option>
+                <option value="IN_STOCK">Skladem (&gt; 10 ks)</option>
+                <option value="LOW">Dochází (1–10 ks)</option>
+                <option value="OUT">Vyprodáno (0 ks)</option>
+              </select>
+            </div>
+
+            <button class="btn btn-ghost" id="btn-reset-filters" title="Resetovat filtry">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+              <span>Reset</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Products Data Table -->
+        <section class="table-card">
+          <div class="table-responsive">
+            <table class="data-table" id="products-table">
+              <thead>
+                <tr>
+                  <th>SKU</th>
+                  <th>Produkt & Kategorie</th>
+                  <th>Cena (s DPH)</th>
+                  <th>Rozpad skladů (Praha / Brno / Ostrava)</th>
+                  <th>Celkem ks</th>
+                  <th>Dostupnost</th>
+                  <th class="text-right">Rychlá akce</th>
+                </tr>
+              </thead>
+              <tbody id="products-tbody">
+                <!-- Rendered dynamically by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+          <div class="table-footer">
+            <span id="table-status-text">Zobrazeno 0 produktů</span>
+            <div class="table-legend">
+              <span class="legend-dot in-stock"></span> Skladem
+              <span class="legend-dot low-stock"></span> Dochází
+              <span class="legend-dot out-stock"></span> Vyprodáno
+            </div>
+          </div>
+        </section>
       </section>
 
-      <!-- Filter & Search Toolbar -->
-      <section class="toolbar-card">
-        <div class="search-input-wrapper">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input type="text" id="search-input" placeholder="Vyhledat produkt podle názvu nebo SKU..." autocomplete="off">
-        </div>
+      <!-- POHLED 2: Sklady (3 lokace ze zadání) -->
+      <section id="view-warehouses" class="view-panel" style="display: none;">
+        <!-- Top Bar -->
+        <header class="topbar">
+          <div>
+            <h1 class="page-title">Rozdělení produktů na sklady (M:N)</h1>
+            <p class="page-subtitle">Evidence víceskladového hospodářství (W-PRG, W-BRN, W-OST), kapacit a rozpadu zásob</p>
+          </div>
+          <div class="topbar-actions">
+            <button class="btn btn-secondary" id="btn-view-back-to-products">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              <span>Zpět na katalog</span>
+            </button>
+            <button class="btn btn-primary" id="btn-open-transfer-modal">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+              <span>Meziskladový převod zboží</span>
+            </button>
+          </div>
+        </header>
 
-        <div class="filter-controls">
-          <div class="select-wrapper">
-            <select id="filter-category">
-              <option value="ALL">Všechny kategorie</option>
-              <option value="Elektronika">Elektronika</option>
-              <option value="Příslušenství">Příslušenství</option>
-              <option value="Audio">Audio</option>
-              <option value="Kancelář">Kancelář</option>
-            </select>
+        <!-- Warehouse Cards Grid (3 lokace ze zadání B) -->
+        <section class="warehouse-cards-grid" id="warehouse-cards-container">
+          <!-- Dynamically populated via JS -->
+        </section>
+
+        <!-- Warehouse Inventory Toolbar -->
+        <section class="toolbar-card">
+          <div class="wh-tabs-group" id="wh-tabs-container">
+            <button class="wh-tab-btn active" data-wh="ALL">Všechny sklady (přehled M:N)</button>
+            <button class="wh-tab-btn" data-wh="praha">Praha (W-PRG)</button>
+            <button class="wh-tab-btn" data-wh="brno">Brno (W-BRN)</button>
+            <button class="wh-tab-btn" data-wh="ostrava">Ostrava (W-OST)</button>
           </div>
 
-          <div class="select-wrapper">
-            <select id="filter-stock">
-              <option value="ALL">Všechny stavy zásob</option>
-              <option value="IN_STOCK">Skladem (&gt; 10 ks)</option>
-              <option value="LOW">Dochází (1–10 ks)</option>
-              <option value="OUT">Vyprodáno (0 ks)</option>
-            </select>
-          </div>
+          <div class="filter-controls" style="flex-grow: 1; justify-content: flex-end;">
+            <div class="search-input-wrapper" style="min-width: 220px; max-width: 320px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="wh-search-input" placeholder="Hledat na vybraném skladu..." autocomplete="off">
+            </div>
 
-          <button class="btn btn-ghost" id="btn-reset-filters" title="Resetovat filtry">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-            <span>Reset</span>
-          </button>
-        </div>
-      </section>
-
-      <!-- Products Data Table -->
-      <section class="table-card">
-        <div class="table-responsive">
-          <table class="data-table" id="products-table">
-            <thead>
-              <tr>
-                <th>SKU</th>
-                <th>Produkt & Kategorie</th>
-                <th>Cena (s DPH)</th>
-                <th>Rozpad skladů (Praha / Brno / Ostrava)</th>
-                <th>Celkem ks</th>
-                <th>Dostupnost</th>
-                <th class="text-right">Rychlá akce</th>
-              </tr>
-            </thead>
-            <tbody id="products-tbody">
-              <!-- Rendered dynamically by JavaScript -->
-            </tbody>
-          </table>
-        </div>
-        <div class="table-footer">
-          <span id="table-status-text">Zobrazeno 0 produktů</span>
-          <div class="table-legend">
-            <span class="legend-dot in-stock"></span> Skladem
-            <span class="legend-dot low-stock"></span> Dochází
-            <span class="legend-dot out-stock"></span> Vyprodáno
+            <div class="select-wrapper">
+              <select id="wh-filter-availability">
+                <option value="ALL">Všechny položky</option>
+                <option value="IN_STOCK">Pouze naskladněné (&gt; 0 ks)</option>
+                <option value="OUT">Vyprodané na skladu (0 ks)</option>
+              </select>
+            </div>
           </div>
-        </div>
+        </section>
+
+        <!-- Warehouse Inventory Table -->
+        <section class="table-card">
+          <div class="table-responsive">
+            <table class="data-table" id="warehouse-inventory-table">
+              <thead>
+                <tr>
+                  <th>Sklad & Lokace</th>
+                  <th>SKU</th>
+                  <th>Produkt & Kategorie</th>
+                  <th>Fyzická zásoba</th>
+                  <th>Rezervováno</th>
+                  <th>Volné k výdeji</th>
+                  <th>Hodnota na skladu</th>
+                  <th class="text-right">Rychlá akce skladu</th>
+                </tr>
+              </thead>
+              <tbody id="warehouse-tbody">
+                <!-- Dynamically populated via JS -->
+              </tbody>
+            </table>
+          </div>
+          <div class="table-footer">
+            <span id="warehouse-table-status">Zobrazeno 0 skladových záznamů</span>
+            <div class="table-legend">
+              <span class="legend-dot in-stock"></span> Volné k expedici
+              <span class="legend-dot low-stock"></span> Rezervováno v objednávkách
+              <span class="legend-dot out-stock"></span> Nulová zásoba
+            </div>
+          </div>
+        </section>
       </section>
     </main>
   </div>
@@ -255,6 +350,67 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" id="modal-btn-cancel">Zrušit</button>
           <button type="submit" class="btn btn-primary" id="modal-btn-save">Uložit produkt</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Meziskladový převod (Transfer) -->
+  <div class="modal-backdrop" id="transfer-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title" id="transfer-modal-title">Meziskladový převod zásob (M:N)</h2>
+        <button class="modal-close-btn" id="transfer-btn-close">&times;</button>
+      </div>
+      <form id="transfer-form">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="transfer-product">Vyberte produkt k převodu *</label>
+            <select id="transfer-product" required>
+              <!-- Filled dynamically via JS -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="transfer-from">Zdrojový sklad (Odkud) *</label>
+            <select id="transfer-from" required>
+              <option value="praha">Centrální sklad Praha (W-PRG)</option>
+              <option value="brno">Regionální sklad Brno (W-BRN)</option>
+              <option value="ostrava">Distribuční centrum Ostrava (W-OST)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="transfer-to">Cílový sklad (Kam) *</label>
+            <select id="transfer-to" required>
+              <option value="brno">Regionální sklad Brno (W-BRN)</option>
+              <option value="praha">Centrální sklad Praha (W-PRG)</option>
+              <option value="ostrava">Distribuční centrum Ostrava (W-OST)</option>
+            </select>
+          </div>
+
+          <div class="form-group full-width">
+            <div id="transfer-availability-box" class="transfer-info-box">
+              <span class="info-label">Dostupná volná zásoba k převodu na zdrojovém skladu:</span>
+              <strong id="transfer-available-count">0 ks</strong>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="transfer-quantity">Počet kusů k převodu *</label>
+            <input type="number" id="transfer-quantity" min="1" value="1" required>
+            <span class="form-help">Množství nesmí překročit volnou (nerezervovanou) zásobu na zdrojovém skladu</span>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="transfer-note">Důvod převodu / Poznámka k expedici</label>
+            <input type="text" id="transfer-note" placeholder="např. Pokrytí zvýšené poptávky pro region Morava">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="transfer-btn-cancel">Zrušit</button>
+          <button type="submit" class="btn btn-primary" id="transfer-btn-submit">Provést převod zásob</button>
         </div>
       </form>
     </div>
