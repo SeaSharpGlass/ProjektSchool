@@ -194,9 +194,13 @@ Pro okamžitou klientskou prezentaci bez nutnosti instalace databáze:
     * Rozpad skladových zásob (vazba M:N `WarehouseStock`): rozlišení celkové fyzické zásoby (`Quantity`), rezervovaného množství (`ReservedQuantity`) a volného množství k okamžitému výdeji.
     * Rychlé úpravy skladového stavu přímo pro konkrétní zvolený sklad.
     * **Meziskladový převod zboží:** Funkce přesunu kusů mezi libovolnými sklady s automatickou validací dostupné volné zásoby na zdrojovém skladu.
-  - Tlačítko **"Simulovat nákup klienta"** demonstrující klíčová doménová pravidla:
-    * *Úspěšné vyskladnění* s uvedením konkrétního skladu, ze kterého se zboží vydalo.
-    * *Striktní odmítnutí objednávky*, pokud skladové zásoby nestačí.
+  - **Modul Objednávky (M:N vazba se sklady):** Kompletní klientská správa objednávek dle Zadání B:
+    * Seznam objednávek se stavem (*Confirmed*, *Dispatched*, *Cancelled*), souhrnem částek a náhledem položek.
+    * **Vytvoření objednávky (M:N builder):** Umožňuje přidat libovolný počet různých produktů, pro každou položku vybrat konkrétní expediční sklad a zadat počet kusů.
+    * **Striktní validace dostupnosti zásob (Klíčové pravidlo):** Pokud na vybraném skladu není volná disponibilní zásoba, systém objednávku nekompromisně odmítne.
+    * **Auditovatelnost výdeje:** Pro každou položku je v detailu objednávky jednoznačně evidován expediční sklad (`WarehouseId`).
+    * **Životní cyklus objednávky:** Rezervace zásob při potvrzení, definitivní odpis při expedici a uvolnění rezervovaných kusů při stornu.
+  - Tlačítko **"Simulovat nákup klienta"** demonstrující doménová pravidla s přímým zápisem do seznamu objednávek.
 
 ### 7.2 Backend & Databáze (PostgreSQL v Dockeru)
 ```bash
@@ -232,6 +236,10 @@ dotnet test
 ## 9. Historie vývoje & Changelog
 
 - **2026-10-07:**
+  - Implementace samostatného modulu **Objednávky (M:N)** dle Zadání B (tvorba vícepoložkových objednávek, vazba `OrderItem` na `Product` a `WarehouseId`).
+  - Zavedení striktního pravidla odmítnutí objednávky při nedostatku volných zásob na zvoleném skladu expedice.
+  - Implementace životního cyklu objednávky (rezervace kusů při potvrzení, definitivní odpis při expedici, uvolnění rezervací při stornu).
+  - Přidán detail objednávky s auditním rozpadem skladů expedice.
   - Implementace samostatného modulu **Sklady (3 lokace)** dle Zadání B (Centrální sklad Praha W-PRG, Regionální sklad Brno W-BRN, Distribuční centrum Ostrava W-OST).
   - Vytvoření přehledových karet skladů s ukazateli zaplnění kapacity, počtu položek a celkové hodnoty zboží na skladě.
   - Detailní zobrazení vazby M:N (`WarehouseStock`) s evidencí fyzické zásoby, rezervovaného množství a volných kusů k výdeji.

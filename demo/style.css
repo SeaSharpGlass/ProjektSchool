@@ -1135,6 +1135,216 @@ body {
   color: #fff;
 }
 
+/* ===================================================================
+   Orders Module Styles (Zadání B: Vazba M:N OrderItem & Audit výdeje)
+   =================================================================== */
+
+/* Order Status Badges */
+.order-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.order-status-badge.confirmed {
+  background: var(--color-amber-bg);
+  color: var(--color-amber);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.order-status-badge.dispatched {
+  background: var(--color-emerald-bg);
+  color: var(--color-emerald);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.order-status-badge.cancelled {
+  background: var(--color-rose-bg);
+  color: var(--color-rose);
+  border: 1px solid rgba(244, 63, 94, 0.35);
+}
+
+.order-status-badge.draft {
+  background: rgba(148, 163, 184, 0.15);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+}
+
+/* Order Items Preview in Main Table */
+.order-items-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.order-item-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+}
+
+.order-item-chip strong {
+  color: var(--text-main);
+}
+
+.order-item-wh-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: ui-monospace, monospace;
+}
+
+/* Order Item Row in Creation Modal */
+.order-builder-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.order-builder-row {
+  display: grid;
+  grid-template-columns: 2fr 1.6fr 1fr 1fr auto;
+  gap: 10px;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+}
+
+.order-builder-row:hover {
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.order-builder-row select,
+.order-builder-row input {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.85rem;
+  width: 100%;
+}
+
+.order-builder-row select:focus,
+.order-builder-row input:focus {
+  border-color: var(--border-focus);
+}
+
+.order-stock-hint {
+  grid-column: 1 / -1;
+  font-size: 0.74rem;
+  color: var(--text-dim);
+  display: flex;
+  justify-content: space-between;
+}
+
+.order-stock-hint strong {
+  color: var(--color-emerald);
+}
+
+.order-stock-hint.out-of-stock strong {
+  color: var(--color-rose);
+}
+
+/* Order Summary Box in Creation Modal */
+.order-summary-box {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.order-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.order-summary-row.total {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  border-top: 1px solid var(--border-color);
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+/* Order Detail Modal */
+.order-detail-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: 20px;
+}
+
+.order-meta-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.order-meta-label {
+  font-size: 0.74rem;
+  color: var(--text-dim);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.order-meta-val {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-top: 2px;
+}
+
+.order-detail-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.order-detail-items-table th {
+  background: rgba(15, 23, 42, 0.8);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+}
+
+.order-detail-items-table td {
+  padding: 12px 14px;
+  font-size: 0.86rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
 /* Responsive adjustments */
 @media (max-width: 1024px) {
   .app-layout { flex-direction: column; }

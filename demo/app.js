@@ -1,7 +1,14 @@
 /**
  * WarehouseHub - Klientské drátové demo
- * Modul: Správa produktů & Víceskladové hospodářství (Zadání B: 3 Lokace, M:N vazba)
+ * Moduly:
+ * 1. Správa produktů & skladových zásob (Katalog, CRUD, filtrace)
+ * 2. Sklady - 3 lokace ze Zadání B (Centrální sklad Praha W-PRG, Regionální sklad Brno W-BRN, Distribuční centrum Ostrava W-OST, M:N rozpad)
+ * 3. Objednávky - vazba M:N (Order -> OrderItem -> Product & Warehouse, kontrola zásob, auditovatelnost výdeje)
  */
+
+// ===================================================================
+// DATOVÝ MODEL & KONFIGURACE (Zadání B)
+// ===================================================================
 
 // Konfigurace fyzických skladů dle Zadání B a ER diagramu
 const warehouses = [
@@ -54,7 +61,7 @@ let products = [
     },
     reserved: {
       praha: 2,
-      brno: 1,
+      brno: 0,
       ostrava: 0
     }
   },
@@ -110,9 +117,9 @@ let products = [
       ostrava: 9
     },
     reserved: {
-      praha: 4,
+      praha: 1,
       brno: 0,
-      ostrava: 2
+      ostrava: 0
     }
   },
   {
@@ -148,24 +155,164 @@ let products = [
       ostrava: 4
     },
     reserved: {
-      praha: 2,
+      praha: 0,
       brno: 0,
-      ostrava: 1
+      ostrava: 0
     }
+  }
+];
+
+// Syntetická zákaznická data (pravidlo 4: Žádná reálná osobní data)
+const sampleCustomers = [
+  {
+    id: "cst-001",
+    fullName: "Jan Novák (Demo)",
+    email: "jan.novak.demo@test-eshop.cz",
+    phone: "+420 777 123 456",
+    address: "Karlova 15, 110 00 Praha 1"
+  },
+  {
+    id: "cst-002",
+    fullName: "Petra Dvořáková (Demo)",
+    email: "petra.dvorak.demo@test-eshop.cz",
+    phone: "+420 608 987 654",
+    address: "Masarykova 42, 602 00 Brno"
+  },
+  {
+    id: "cst-003",
+    fullName: "Tomáš Kučera (Demo)",
+    email: "tomas.kucera.demo@test-eshop.cz",
+    phone: "+420 724 555 888",
+    address: "Nádražní 8, 702 00 Ostrava"
+  }
+];
+
+// Výchozí objednávky demonstrující M:N vazbu a dohledatelnost výdeje
+let orders = [
+  {
+    id: "ord-101",
+    orderNumber: "ORD-2026-1041",
+    customerId: "cst-001",
+    customerName: "Jan Novák (Demo)",
+    customerEmail: "jan.novak.demo@test-eshop.cz",
+    customerPhone: "+420 777 123 456",
+    customerAddress: "Karlova 15, 110 00 Praha 1",
+    status: "Confirmed",
+    createdAt: "2026-10-06 14:20",
+    totalPrice: 4980,
+    items: [
+      {
+        id: "item-001",
+        productId: "prd-001",
+        productSku: "PRD-1001",
+        productName: "Bezdrátová mechanická klávesnice RGB",
+        warehouseKey: "praha",
+        warehouseName: "Centrální sklad Praha (W-PRG)",
+        quantity: 2,
+        unitPrice: 2490
+      }
+    ]
+  },
+  {
+    id: "ord-102",
+    orderNumber: "ORD-2026-1042",
+    customerId: "cst-002",
+    customerName: "Petra Dvořáková (Demo)",
+    customerEmail: "petra.dvorak.demo@test-eshop.cz",
+    customerPhone: "+420 608 987 654",
+    customerAddress: "Masarykova 42, 602 00 Brno",
+    status: "Confirmed",
+    createdAt: "2026-10-07 09:15",
+    totalPrice: 3340,
+    items: [
+      {
+        id: "item-002",
+        productId: "prd-002",
+        productSku: "PRD-1002",
+        productName: "Ergonomická vertikální myš Pro",
+        warehouseKey: "praha",
+        warehouseName: "Centrální sklad Praha (W-PRG)",
+        quantity: 1,
+        unitPrice: 1190
+      },
+      {
+        id: "item-003",
+        productId: "prd-004",
+        productSku: "PRD-1004",
+        productName: "USB-C Dokovací stanice 10v1 Dual 4K",
+        warehouseKey: "praha",
+        warehouseName: "Centrální sklad Praha (W-PRG)",
+        quantity: 1,
+        unitPrice: 2150
+      }
+    ]
+  },
+  {
+    id: "ord-103",
+    orderNumber: "ORD-2026-1043",
+    customerId: "cst-003",
+    customerName: "Tomáš Kučera (Demo)",
+    customerEmail: "tomas.kucera.demo@test-eshop.cz",
+    customerPhone: "+420 724 555 888",
+    customerAddress: "Nádražní 8, 702 00 Ostrava",
+    status: "Dispatched",
+    createdAt: "2026-10-05 11:45",
+    totalPrice: 4830,
+    items: [
+      {
+        id: "item-004",
+        productId: "prd-006",
+        productSku: "PRD-1006",
+        productName: "Kondenzátorový USB mikrofon Studio",
+        warehouseKey: "ostrava",
+        warehouseName: "Distribuční centrum Ostrava (W-OST)",
+        quantity: 1,
+        unitPrice: 1790
+      },
+      {
+        id: "item-005",
+        productId: "prd-005",
+        productSku: "PRD-1005",
+        productName: "Polohovací stavitelný podstavec pod monitor",
+        warehouseKey: "brno",
+        warehouseName: "Regionální sklad Brno (W-BRN)",
+        quantity: 1,
+        unitPrice: 890
+      },
+      {
+        id: "item-006",
+        productId: "prd-004",
+        productSku: "PRD-1004",
+        productName: "USB-C Dokovací stanice 10v1 Dual 4K",
+        warehouseKey: "ostrava",
+        warehouseName: "Distribuční centrum Ostrava (W-OST)",
+        quantity: 1,
+        unitPrice: 2150
+      }
+    ]
   }
 ];
 
 // Aktivní záložka v přehledu skladů (ALL, praha, brno, ostrava)
 let currentWarehouseTab = "ALL";
 
-// Reference na DOM prvky - Navigace a pohledy
+// ===================================================================
+// REFERENCE NA DOM PRVKY
+// ===================================================================
+
+// Navigace a moduly
 const navProducts = document.getElementById("nav-products");
 const navWarehouses = document.getElementById("nav-warehouses");
+const navOrders = document.getElementById("nav-orders");
+const navCountBadge = document.getElementById("nav-count-badge");
+const navOrdersBadge = document.getElementById("nav-orders-badge");
+
 const viewProducts = document.getElementById("view-products");
 const viewWarehouses = document.getElementById("view-warehouses");
+const viewOrders = document.getElementById("view-orders");
 const btnViewBackToProducts = document.getElementById("btn-view-back-to-products");
 
-// Reference na DOM prvky - Pohled Produkty
+// Modul 1: Produkty
 const tbody = document.getElementById("products-tbody");
 const searchInput = document.getElementById("search-input");
 const filterCategory = document.getElementById("filter-category");
@@ -178,9 +325,8 @@ const kpiTotalStock = document.getElementById("kpi-total-stock");
 const kpiLowStock = document.getElementById("kpi-low-stock");
 const kpiTotalValue = document.getElementById("kpi-total-value");
 const tableStatusText = document.getElementById("table-status-text");
-const navCountBadge = document.getElementById("nav-count-badge");
 
-// Reference na DOM prvky - Pohled Sklady
+// Modul 2: Sklady
 const warehouseCardsContainer = document.getElementById("warehouse-cards-container");
 const whTabsContainer = document.getElementById("wh-tabs-container");
 const whSearchInput = document.getElementById("wh-search-input");
@@ -188,7 +334,23 @@ const whFilterAvailability = document.getElementById("wh-filter-availability");
 const warehouseTbody = document.getElementById("warehouse-tbody");
 const warehouseTableStatus = document.getElementById("warehouse-table-status");
 
-// Modální okno: Produkt
+// Modul 3: Objednávky
+const ordersTbody = document.getElementById("orders-tbody");
+const orderSearchInput = document.getElementById("order-search-input");
+const orderFilterStatus = document.getElementById("order-filter-status");
+const orderFilterWarehouse = document.getElementById("order-filter-warehouse");
+const btnResetOrderFilters = document.getElementById("btn-reset-order-filters");
+
+const kpiOrdersCount = document.getElementById("kpi-orders-count");
+const kpiOrdersRevenue = document.getElementById("kpi-orders-revenue");
+const kpiOrdersConfirmed = document.getElementById("kpi-orders-confirmed");
+const kpiOrdersDispatched = document.getElementById("kpi-orders-dispatched");
+const ordersTableStatus = document.getElementById("orders-table-status");
+
+const btnOpenCreateOrderModal = document.getElementById("btn-open-create-order-modal");
+const btnQuickSampleOrder = document.getElementById("btn-quick-sample-order");
+
+// Modály
 const productModal = document.getElementById("product-modal");
 const modalTitle = document.getElementById("modal-title");
 const productForm = document.getElementById("product-form");
@@ -197,7 +359,6 @@ const modalBtnClose = document.getElementById("modal-btn-close");
 const modalBtnCancel = document.getElementById("modal-btn-cancel");
 const btnSimulateOrder = document.getElementById("btn-simulate-order");
 
-// Modální okno: Meziskladový převod
 const transferModal = document.getElementById("transfer-modal");
 const transferForm = document.getElementById("transfer-form");
 const btnOpenTransferModal = document.getElementById("btn-open-transfer-modal");
@@ -209,39 +370,74 @@ const transferToSelect = document.getElementById("transfer-to");
 const transferQuantityInput = document.getElementById("transfer-quantity");
 const transferAvailableCount = document.getElementById("transfer-available-count");
 
-// Inicializace po načtení DOM
+const createOrderModal = document.getElementById("create-order-modal");
+const createOrderForm = document.getElementById("create-order-form");
+const createOrderBtnClose = document.getElementById("create-order-btn-close");
+const createOrderBtnCancel = document.getElementById("create-order-btn-cancel");
+const orderCustomerSelect = document.getElementById("order-customer-select");
+const orderCustName = document.getElementById("order-cust-name");
+const orderCustEmail = document.getElementById("order-cust-email");
+const orderCustPhone = document.getElementById("order-cust-phone");
+const orderCustAddress = document.getElementById("order-cust-address");
+const orderItemsBuilder = document.getElementById("order-items-builder");
+const btnAddOrderItem = document.getElementById("btn-add-order-item");
+const orderCalcSubtotal = document.getElementById("order-calc-subtotal");
+const orderCalcVat = document.getElementById("order-calc-vat");
+const orderCalcTotal = document.getElementById("order-calc-total");
+
+const orderDetailModal = document.getElementById("order-detail-modal");
+const orderDetailTitle = document.getElementById("order-detail-title");
+const orderDetailBtnClose = document.getElementById("order-detail-btn-close");
+const orderDetailContent = document.getElementById("order-detail-content");
+const orderDetailActions = document.getElementById("order-detail-actions");
+
+// ===================================================================
+// INICIALIZACE A PŘEPÍNÁNÍ POHLEDŮ
+// ===================================================================
+
 document.addEventListener("DOMContentLoaded", () => {
   setupEventListeners();
 
-  // Zpracovat počáteční hash (#products nebo #warehouses)
-  if (window.location.hash === "#warehouses") {
+  // Zpracovat počáteční hash (#products, #warehouses, #orders)
+  if (window.location.hash === "#orders") {
+    switchView("orders");
+  } else if (window.location.hash === "#warehouses") {
     switchView("warehouses");
   } else {
     switchView("products");
   }
 });
 
-// Přepínání mezi moduly systému (Produkty vs. Sklady)
 function switchView(viewName) {
-  if (viewName === "warehouses") {
-    viewProducts.style.display = "none";
+  // Reset tříd
+  navProducts.classList.remove("active");
+  navWarehouses.classList.remove("active");
+  if (navOrders) navOrders.classList.remove("active");
+
+  viewProducts.style.display = "none";
+  viewWarehouses.style.display = "none";
+  if (viewOrders) viewOrders.style.display = "none";
+
+  if (viewName === "orders") {
+    if (viewOrders) viewOrders.style.display = "block";
+    if (navOrders) navOrders.classList.add("active");
+    window.location.hash = "orders";
+    renderOrdersView();
+  } else if (viewName === "warehouses") {
     viewWarehouses.style.display = "block";
-    navProducts.classList.remove("active");
     navWarehouses.classList.add("active");
     window.location.hash = "warehouses";
     renderWarehouseView();
   } else {
     viewProducts.style.display = "block";
-    viewWarehouses.style.display = "none";
     navProducts.classList.add("active");
-    navWarehouses.classList.remove("active");
     window.location.hash = "products";
     render();
   }
 }
 
 function setupEventListeners() {
-  // Navigační odkazy v postranním panelu
+  // Navigace v postranním panelu
   navProducts.addEventListener("click", (e) => {
     e.preventDefault();
     switchView("products");
@@ -252,24 +448,31 @@ function setupEventListeners() {
     switchView("warehouses");
   });
 
+  if (navOrders) {
+    navOrders.addEventListener("click", (e) => {
+      e.preventDefault();
+      switchView("orders");
+    });
+  }
+
   if (btnViewBackToProducts) {
     btnViewBackToProducts.addEventListener("click", () => switchView("products"));
   }
 
   window.addEventListener("hashchange", () => {
-    if (window.location.hash === "#warehouses") {
+    if (window.location.hash === "#orders") {
+      switchView("orders");
+    } else if (window.location.hash === "#warehouses") {
       switchView("warehouses");
     } else {
       switchView("products");
     }
   });
 
-  // Filtrování v modulu Produktů
+  // Filtry: Produkty
   searchInput.addEventListener("input", render);
   filterCategory.addEventListener("change", render);
-  if (filterWarehouse) {
-    filterWarehouse.addEventListener("change", render);
-  }
+  if (filterWarehouse) filterWarehouse.addEventListener("change", render);
   filterStock.addEventListener("change", render);
 
   btnResetFilters.addEventListener("click", () => {
@@ -281,7 +484,7 @@ function setupEventListeners() {
     showToast("Filtry katalogu byly resetovány", "info");
   });
 
-  // Filtrování v modulu Skladů
+  // Filtry: Sklady
   if (whTabsContainer) {
     whTabsContainer.addEventListener("click", (e) => {
       const btn = e.target.closest(".wh-tab-btn");
@@ -293,15 +496,24 @@ function setupEventListeners() {
     });
   }
 
-  if (whSearchInput) {
-    whSearchInput.addEventListener("input", renderWarehouseView);
+  if (whSearchInput) whSearchInput.addEventListener("input", renderWarehouseView);
+  if (whFilterAvailability) whFilterAvailability.addEventListener("change", renderWarehouseView);
+
+  // Filtry: Objednávky
+  if (orderSearchInput) orderSearchInput.addEventListener("input", renderOrdersView);
+  if (orderFilterStatus) orderFilterStatus.addEventListener("change", renderOrdersView);
+  if (orderFilterWarehouse) orderFilterWarehouse.addEventListener("change", renderOrdersView);
+  if (btnResetOrderFilters) {
+    btnResetOrderFilters.addEventListener("click", () => {
+      orderSearchInput.value = "";
+      orderFilterStatus.value = "ALL";
+      orderFilterWarehouse.value = "ALL";
+      renderOrdersView();
+      showToast("Filtry objednávek byly resetovány", "info");
+    });
   }
 
-  if (whFilterAvailability) {
-    whFilterAvailability.addEventListener("change", renderWarehouseView);
-  }
-
-  // Modální dialog: Produkt
+  // Modál: Produkt
   btnOpenCreateModal.addEventListener("click", () => openModal());
   modalBtnClose.addEventListener("click", closeModal);
   modalBtnCancel.addEventListener("click", closeModal);
@@ -310,10 +522,8 @@ function setupEventListeners() {
   });
   productForm.addEventListener("submit", handleFormSubmit);
 
-  // Modální dialog: Meziskladový převod
-  if (btnOpenTransferModal) {
-    btnOpenTransferModal.addEventListener("click", () => openTransferModal());
-  }
+  // Modál: Převod
+  if (btnOpenTransferModal) btnOpenTransferModal.addEventListener("click", () => openTransferModal());
   if (transferBtnClose) transferBtnClose.addEventListener("click", closeTransferModal);
   if (transferBtnCancel) transferBtnCancel.addEventListener("click", closeTransferModal);
   if (transferModal) {
@@ -321,38 +531,54 @@ function setupEventListeners() {
       if (e.target === transferModal) closeTransferModal();
     });
   }
-  if (transferForm) {
-    transferForm.addEventListener("submit", handleTransferSubmit);
+  if (transferForm) transferForm.addEventListener("submit", handleTransferSubmit);
+  if (transferProductSelect) transferProductSelect.addEventListener("change", updateTransferAvailabilityHint);
+  if (transferFromSelect) transferFromSelect.addEventListener("change", updateTransferAvailabilityHint);
+
+  // Modál: Objednávka
+  if (btnOpenCreateOrderModal) btnOpenCreateOrderModal.addEventListener("click", openCreateOrderModal);
+  if (btnQuickSampleOrder) btnQuickSampleOrder.addEventListener("click", simulateClientOrder);
+  if (createOrderBtnClose) createOrderBtnClose.addEventListener("click", closeCreateOrderModal);
+  if (createOrderBtnCancel) createOrderBtnCancel.addEventListener("click", closeCreateOrderModal);
+  if (createOrderModal) {
+    createOrderModal.addEventListener("click", (e) => {
+      if (e.target === createOrderModal) closeCreateOrderModal();
+    });
   }
-  if (transferProductSelect) {
-    transferProductSelect.addEventListener("change", updateTransferAvailabilityHint);
-  }
-  if (transferFromSelect) {
-    transferFromSelect.addEventListener("change", updateTransferAvailabilityHint);
+  if (createOrderForm) createOrderForm.addEventListener("submit", handleCreateOrderSubmit);
+  if (btnAddOrderItem) btnAddOrderItem.addEventListener("click", () => addOrderItemRow());
+  if (orderCustomerSelect) orderCustomerSelect.addEventListener("change", handleCustomerSelectChange);
+
+  // Modál: Detail objednávky
+  if (orderDetailBtnClose) orderDetailBtnClose.addEventListener("click", closeOrderDetailModal);
+  if (orderDetailModal) {
+    orderDetailModal.addEventListener("click", (e) => {
+      if (e.target === orderDetailModal) closeOrderDetailModal();
+    });
   }
 
-  // Klientská simulace nákupu
+  // Simulace nákupu z topbaru
   btnSimulateOrder.addEventListener("click", simulateClientOrder);
 }
 
-// Výpočet celkového počtu kusů produktu napříč sklady
+// ===================================================================
+// POMOCNÉ DOMÉNOVÉ FUNKCE
+// ===================================================================
+
 function getTotalStock(product) {
   return (product.stocks.praha || 0) + (product.stocks.brno || 0) + (product.stocks.ostrava || 0);
 }
 
-// Získání rezervovaného množství na konkrétním skladu
 function getReservedStock(product, whKey) {
   return (product.reserved && product.reserved[whKey]) || 0;
 }
 
-// Získání volného (nerezervovaného) množství k výdeji
 function getAvailableStock(product, whKey) {
   const physical = (product.stocks && product.stocks[whKey]) || 0;
   const reserved = getReservedStock(product, whKey);
   return Math.max(0, physical - reserved);
 }
 
-// Určení stavu dostupnosti pro souhrnné zobrazení
 function getStockStatus(totalStock) {
   if (totalStock === 0) {
     return { key: "OUT", label: "Vyprodáno", class: "out-stock" };
@@ -363,7 +589,6 @@ function getStockStatus(totalStock) {
   }
 }
 
-// Rychlé nastavení filtru skladu z kliknutí na štítek
 window.filterByWarehouse = function(whKey) {
   if (filterWarehouse) {
     filterWarehouse.value = whKey;
@@ -374,7 +599,7 @@ window.filterByWarehouse = function(whKey) {
 };
 
 // ===================================================================
-// VYKRESLENÍ: POHLED 1 (PRODUKTY & ZÁSOBY)
+// VYKRESLENÍ: 1. PRODUKTY & ZÁSOBY
 // ===================================================================
 function render() {
   const searchTerm = searchInput.value.trim().toLowerCase();
@@ -382,29 +607,21 @@ function render() {
   const selectedWh = filterWarehouse ? filterWarehouse.value : "ALL";
   const selectedStock = filterStock.value;
 
-  // Filtrace produktů
   const filtered = products.filter(p => {
     const total = getTotalStock(p);
     const status = getStockStatus(total);
 
-    // Fulltext filtr
     const matchesSearch = p.name.toLowerCase().includes(searchTerm) ||
                           p.sku.toLowerCase().includes(searchTerm) ||
                           p.description.toLowerCase().includes(searchTerm);
 
-    // Filtr kategorie
     const matchesCategory = selectedCat === "ALL" || p.category === selectedCat;
-
-    // Filtr skladu (zda má na vybraném skladu alespoň 1 ks)
     const matchesWarehouse = selectedWh === "ALL" || (p.stocks[selectedWh] || 0) > 0;
-
-    // Filtr stavu zásob
     const matchesStock = selectedStock === "ALL" || status.key === selectedStock;
 
     return matchesSearch && matchesCategory && matchesWarehouse && matchesStock;
   });
 
-  // Vykreslení řádků tabulky produktů
   tbody.innerHTML = "";
 
   if (filtered.length === 0) {
@@ -466,11 +683,9 @@ function render() {
     });
   }
 
-  // Aktualizace souhrnných metrik
   updateMetrics(filtered);
 }
 
-// Přepočet celkových metrik
 function updateMetrics(currentList) {
   const activeProducts = products.filter(p => p.isActive).length;
   let totalStockPieces = 0;
@@ -494,12 +709,11 @@ function updateMetrics(currentList) {
 }
 
 // ===================================================================
-// VYKRESLENÍ: POHLED 2 (SKLADY - 3 LOKACE ZE ZADÁNÍ B)
+// VYKRESLENÍ: 2. SKLADY (3 LOKACE ZE ZADÁNÍ B)
 // ===================================================================
 function renderWarehouseView() {
   if (!warehouseCardsContainer || !warehouseTbody) return;
 
-  // 1. Spočítat statistiky pro každý sklad
   const stats = {};
   warehouses.forEach(wh => {
     let itemsCount = 0;
@@ -527,7 +741,6 @@ function renderWarehouseView() {
     };
   });
 
-  // 2. Vykreslit 3 karty skladů
   warehouseCardsContainer.innerHTML = "";
   warehouses.forEach(wh => {
     const s = stats[wh.key];
@@ -588,14 +801,11 @@ function renderWarehouseView() {
     warehouseCardsContainer.appendChild(card);
   });
 
-  // 3. Vykreslit tabulku skladových zásob (rozpad M:N)
   const query = (whSearchInput ? whSearchInput.value.trim().toLowerCase() : "");
   const availFilter = (whFilterAvailability ? whFilterAvailability.value : "ALL");
-
   const rowsData = [];
 
   products.forEach(p => {
-    // Projít sklady relevantní pro aktuální záložku
     const relevantWarehouses = (currentWarehouseTab === "ALL")
       ? warehouses
       : warehouses.filter(w => w.key === currentWarehouseTab);
@@ -605,13 +815,11 @@ function renderWarehouseView() {
       const res = getReservedStock(p, wh.key);
       const avail = Math.max(0, qty - res);
 
-      // Vyhledávací filtr
       const matchesSearch = p.name.toLowerCase().includes(query) ||
                             p.sku.toLowerCase().includes(query) ||
                             wh.name.toLowerCase().includes(query) ||
                             wh.code.toLowerCase().includes(query);
 
-      // Filtr dostupnosti
       let matchesAvail = true;
       if (availFilter === "IN_STOCK") matchesAvail = (qty > 0);
       if (availFilter === "OUT") matchesAvail = (qty === 0);
@@ -661,9 +869,7 @@ function renderWarehouseView() {
           <span class="product-name">${escapeHtml(p.name)}</span>
           <span class="category-tag">${p.category}</span>
         </td>
-        <td>
-          <strong style="font-size: 1rem;">${row.quantity} ks</strong>
-        </td>
+        <td><strong style="font-size: 1rem;">${row.quantity} ks</strong></td>
         <td>
           <span style="color: ${row.reserved > 0 ? '#f59e0b' : 'var(--text-dim)'}; font-weight: ${row.reserved > 0 ? '700' : 'normal'};">
             ${row.reserved} ks
@@ -700,7 +906,6 @@ function renderWarehouseView() {
   }
 }
 
-// Změna aktivní záložky skladu programově
 window.setWarehouseTab = function(whKey) {
   currentWarehouseTab = whKey;
   if (whTabsContainer) {
@@ -715,7 +920,6 @@ window.setWarehouseTab = function(whKey) {
   renderWarehouseView();
 };
 
-// Rychlá úprava stavu skladu pro KONKRÉTNÍ SKLAD
 window.quickAdjustWarehouseStock = function(productId, warehouseKey, amount) {
   const p = products.find(item => item.id === productId);
   if (!p) return;
@@ -745,6 +949,558 @@ window.quickAdjustWarehouseStock = function(productId, warehouseKey, amount) {
 
   render();
   renderWarehouseView();
+  renderOrdersView();
+};
+
+// ===================================================================
+// VYKRESLENÍ: 3. OBJEDNÁVKY (M:N VAZBA, AUDITOVATELNOST VÝDEJE)
+// ===================================================================
+function renderOrdersView() {
+  if (!ordersTbody) return;
+
+  const search = orderSearchInput ? orderSearchInput.value.trim().toLowerCase() : "";
+  const statusFilter = orderFilterStatus ? orderFilterStatus.value : "ALL";
+  const whFilter = orderFilterWarehouse ? orderFilterWarehouse.value : "ALL";
+
+  // Výpočet KPI objednávek
+  let totalRevenue = 0;
+  let confirmedCount = 0;
+  let dispatchedCount = 0;
+
+  orders.forEach(ord => {
+    if (ord.status !== "Cancelled") {
+      totalRevenue += ord.totalPrice;
+    }
+    if (ord.status === "Confirmed") confirmedCount++;
+    if (ord.status === "Dispatched") dispatchedCount++;
+  });
+
+  if (kpiOrdersCount) kpiOrdersCount.textContent = orders.length;
+  if (kpiOrdersRevenue) kpiOrdersRevenue.textContent = `${totalRevenue.toLocaleString("cs-CZ")} Kč`;
+  if (kpiOrdersConfirmed) kpiOrdersConfirmed.textContent = confirmedCount;
+  if (kpiOrdersDispatched) kpiOrdersDispatched.textContent = dispatchedCount;
+  if (navOrdersBadge) navOrdersBadge.textContent = confirmedCount;
+
+  // Filtrace objednávek
+  const filtered = orders.filter(ord => {
+    const matchesSearch = ord.orderNumber.toLowerCase().includes(search) ||
+                          ord.customerName.toLowerCase().includes(search) ||
+                          ord.customerEmail.toLowerCase().includes(search) ||
+                          ord.items.some(it => it.productName.toLowerCase().includes(search));
+
+    const matchesStatus = (statusFilter === "ALL") || (ord.status === statusFilter);
+
+    const matchesWarehouse = (whFilter === "ALL") || ord.items.some(it => it.warehouseKey === whFilter);
+
+    return matchesSearch && matchesStatus && matchesWarehouse;
+  });
+
+  ordersTbody.innerHTML = "";
+
+  if (filtered.length === 0) {
+    ordersTbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-dim);">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 8px; opacity: 0.5;"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+          <p>Nebyly nalezeny žádné objednávky odpovídající zadaným filtrům.</p>
+        </td>
+      </tr>
+    `;
+  } else {
+    filtered.forEach(ord => {
+      const tr = document.createElement("tr");
+
+      // Náhled položek a expedičních skladů
+      const itemsPreviewHtml = ord.items.map(it => {
+        const whObj = warehouses.find(w => w.key === it.warehouseKey) || { code: it.warehouseKey, badgeClass: "praha" };
+        return `
+          <div class="order-item-chip" title="${escapeHtml(it.productName)} z ${escapeHtml(it.warehouseName)}">
+            <span class="wh-pill ${whObj.badgeClass}" style="padding: 1px 5px; font-size: 0.68rem;">${whObj.code}</span>
+            <span><strong>${it.quantity}x</strong> ${escapeHtml(it.productName)}</span>
+          </div>
+        `;
+      }).join("");
+
+      // Status badge třída a popisek
+      let badgeClass = "confirmed";
+      let statusLabel = "Potvrzeno";
+      if (ord.status === "Dispatched") {
+        badgeClass = "dispatched";
+        statusLabel = "Expedováno";
+      } else if (ord.status === "Cancelled") {
+        badgeClass = "cancelled";
+        statusLabel = "Stornováno";
+      }
+
+      tr.innerHTML = `
+        <td><span class="sku-pill" style="color: #60a5fa; font-weight: 800;">${ord.orderNumber}</span></td>
+        <td>
+          <strong style="display: block; font-size: 0.88rem;">${escapeHtml(ord.customerName)}</strong>
+          <small style="color: var(--text-dim);">${escapeHtml(ord.customerEmail)}</small>
+        </td>
+        <td><small style="color: var(--text-muted);">${ord.createdAt}</small></td>
+        <td>
+          <div class="order-items-preview">
+            ${itemsPreviewHtml}
+          </div>
+        </td>
+        <td>
+          <div class="price-text">${ord.totalPrice.toLocaleString("cs-CZ")} Kč</div>
+          <div class="price-vat">${ord.items.length} ${ord.items.length === 1 ? "položka" : "položky"} (M:N)</div>
+        </td>
+        <td>
+          <span class="order-status-badge ${badgeClass}">
+            <span class="status-indicator-dot"></span>
+            ${statusLabel}
+          </span>
+        </td>
+        <td class="text-right">
+          <div class="table-actions">
+            <button class="btn btn-secondary btn-sm" onclick="viewOrderDetail('${ord.id}')" title="Zobrazit detail položek a audit výdeje">
+              Detail
+            </button>
+            ${ord.status === "Confirmed" ? `
+              <button class="btn btn-primary btn-sm" onclick="dispatchOrder('${ord.id}')" title="Expedovat ze skladů">
+                Expedovat
+              </button>
+            ` : ""}
+          </div>
+        </td>
+      `;
+
+      ordersTbody.appendChild(tr);
+    });
+  }
+
+  if (ordersTableStatus) {
+    ordersTableStatus.textContent = `Zobrazeno ${filtered.length} z celkem ${orders.length} objednávek`;
+  }
+}
+
+// ===================================================================
+// MODÁL: VYTVOŘENÍ NOVÉ OBJEDNÁVKY (M:N POLOŽKY S AUDITEM SKLADŮ)
+// ===================================================================
+function openCreateOrderModal() {
+  if (!createOrderModal) return;
+
+  // Naplnit select zákazníků
+  orderCustomerSelect.innerHTML = `
+    <option value="">-- Vyberte stávajícího zákazníka nebo zadejte nového --</option>
+  `;
+  sampleCustomers.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = `${c.fullName} (${c.email})`;
+    orderCustomerSelect.appendChild(opt);
+  });
+
+  // Předvolit prvního zákazníka
+  if (sampleCustomers.length > 0) {
+    orderCustomerSelect.value = sampleCustomers[0].id;
+    handleCustomerSelectChange();
+  }
+
+  // Inicializovat builder s jedním řádkem
+  orderItemsBuilder.innerHTML = "";
+  addOrderItemRow();
+
+  createOrderModal.classList.add("active");
+}
+
+function closeCreateOrderModal() {
+  if (createOrderModal) createOrderModal.classList.remove("active");
+}
+
+function handleCustomerSelectChange() {
+  const custId = orderCustomerSelect.value;
+  const c = sampleCustomers.find(item => item.id === custId);
+  if (c) {
+    orderCustName.value = c.fullName;
+    orderCustEmail.value = c.email;
+    orderCustPhone.value = c.phone;
+    orderCustAddress.value = c.address;
+  } else {
+    orderCustName.value = "";
+    orderCustEmail.value = "";
+    orderCustPhone.value = "";
+    orderCustAddress.value = "";
+  }
+}
+
+function addOrderItemRow(defaultProdId = null, defaultWhKey = "praha", defaultQty = 1) {
+  const rowId = "row-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+  const row = document.createElement("div");
+  row.className = "order-builder-row";
+  row.id = rowId;
+
+  // Sestavení options pro produkty
+  const prodOptions = products.map(p => `
+    <option value="${p.id}" ${p.id === defaultProdId ? "selected" : ""}>
+      ${p.sku} – ${p.name} (${p.price} Kč)
+    </option>
+  `).join("");
+
+  // Sestavení options pro sklady
+  const whOptions = warehouses.map(wh => `
+    <option value="${wh.key}" ${wh.key === defaultWhKey ? "selected" : ""}>
+      ${wh.code} – ${wh.name}
+    </option>
+  `).join("");
+
+  row.innerHTML = `
+    <div>
+      <select class="builder-prod-select" onchange="updateBuilderRow('${rowId}')">
+        ${prodOptions}
+      </select>
+    </div>
+    <div>
+      <select class="builder-wh-select" onchange="updateBuilderRow('${rowId}')">
+        ${whOptions}
+      </select>
+    </div>
+    <div>
+      <input type="number" class="builder-qty-input" min="1" value="${defaultQty}" oninput="updateBuilderRow('${rowId}')" title="Množství ks">
+    </div>
+    <div style="text-align: right; font-weight: 700;">
+      <span class="builder-subtotal">0 Kč</span>
+    </div>
+    <div>
+      <button type="button" class="btn-icon btn-danger" onclick="removeOrderItemRow('${rowId}')" title="Odstranit položku">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+      </button>
+    </div>
+    <div class="order-stock-hint" id="${rowId}-hint">
+      <span>Dostupná volná zásoba na vybraném skladu: <strong class="builder-avail-val">0 ks</strong></span>
+      <span class="builder-unit-price" style="color: var(--text-dim);">0 Kč / ks</span>
+    </div>
+  `;
+
+  orderItemsBuilder.appendChild(row);
+  updateBuilderRow(rowId);
+}
+
+window.removeOrderItemRow = function(rowId) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+
+  const totalRows = orderItemsBuilder.querySelectorAll(".order-builder-row").length;
+  if (totalRows <= 1) {
+    showToast("Objednávka musí obsahovat alespoň jednu položku!", "warning");
+    return;
+  }
+
+  row.remove();
+  recalculateOrderTotals();
+};
+
+window.updateBuilderRow = function(rowId) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+
+  const prodSelect = row.querySelector(".builder-prod-select");
+  const whSelect = row.querySelector(".builder-wh-select");
+  const qtyInput = row.querySelector(".builder-qty-input");
+  const subtotalEl = row.querySelector(".builder-subtotal");
+  const availEl = row.querySelector(".builder-avail-val");
+  const unitPriceEl = row.querySelector(".builder-unit-price");
+  const hintContainer = row.querySelector(".order-stock-hint");
+
+  const p = products.find(item => item.id === prodSelect.value);
+  if (!p) return;
+
+  const whKey = whSelect.value;
+  const qty = parseInt(qtyInput.value) || 0;
+  const avail = getAvailableStock(p, whKey);
+
+  availEl.textContent = `${avail} ks`;
+  unitPriceEl.textContent = `${p.price.toLocaleString("cs-CZ")} Kč / ks`;
+
+  if (qty > avail) {
+    hintContainer.classList.add("out-of-stock");
+    availEl.style.color = "var(--color-rose)";
+  } else {
+    hintContainer.classList.remove("out-of-stock");
+    availEl.style.color = "var(--color-emerald)";
+  }
+
+  const subtotal = qty * p.price;
+  subtotalEl.textContent = `${subtotal.toLocaleString("cs-CZ")} Kč`;
+
+  recalculateOrderTotals();
+};
+
+function recalculateOrderTotals() {
+  let subtotal = 0;
+  const rows = orderItemsBuilder.querySelectorAll(".order-builder-row");
+
+  rows.forEach(row => {
+    const prodSelect = row.querySelector(".builder-prod-select");
+    const qtyInput = row.querySelector(".builder-qty-input");
+    const p = products.find(item => item.id === prodSelect.value);
+    const qty = parseInt(qtyInput.value) || 0;
+    if (p) {
+      subtotal += (qty * p.price);
+    }
+  });
+
+  const vat = Math.round(subtotal * 0.21);
+  const total = subtotal;
+  const withoutVat = Math.round(subtotal / 1.21);
+
+  if (orderCalcSubtotal) orderCalcSubtotal.textContent = `${withoutVat.toLocaleString("cs-CZ")} Kč`;
+  if (orderCalcVat) orderCalcVat.textContent = `${(total - withoutVat).toLocaleString("cs-CZ")} Kč`;
+  if (orderCalcTotal) orderCalcTotal.textContent = `${total.toLocaleString("cs-CZ")} Kč`;
+}
+
+// Odeslání formuláře objednávky (s doménovým pravidlem Zadání B)
+function handleCreateOrderSubmit(e) {
+  e.preventDefault();
+
+  const custName = orderCustName.value.trim();
+  const custEmail = orderCustEmail.value.trim();
+  const custPhone = orderCustPhone.value.trim();
+  const custAddress = orderCustAddress.value.trim();
+
+  const rows = orderItemsBuilder.querySelectorAll(".order-builder-row");
+  if (rows.length === 0) {
+    showToast("Přidejte alespoň jednu položku do objednávky!", "warning");
+    return;
+  }
+
+  const items = [];
+  let hasInsufficientStock = false;
+  let insufficientMessage = "";
+
+  rows.forEach(row => {
+    const prodId = row.querySelector(".builder-prod-select").value;
+    const whKey = row.querySelector(".builder-wh-select").value;
+    const qty = parseInt(row.querySelector(".builder-qty-input").value) || 0;
+
+    const p = products.find(item => item.id === prodId);
+    const whObj = warehouses.find(w => w.key === whKey);
+    const avail = getAvailableStock(p, whKey);
+
+    if (qty <= 0) {
+      hasInsufficientStock = true;
+      insufficientMessage = "Množství u položky musí být minimálně 1 ks.";
+      return;
+    }
+
+    // KRITICKÉ PRAVIDLO ZADÁNÍ B: Striktní odmítnutí při nedostatku zásob
+    if (qty > avail) {
+      hasInsufficientStock = true;
+      insufficientMessage = `❌ Objednávka ODMÍTNUTA! Na skladě "${whObj.name}" je k dispozici pouze ${avail} ks produktu "${p.name}". Nelze vytvořit objednávku na ${qty} ks bez krytí zásoby.`;
+      return;
+    }
+
+    items.push({
+      id: "item-" + Date.now() + "-" + Math.floor(Math.random() * 1000),
+      productId: p.id,
+      productSku: p.sku,
+      productName: p.name,
+      warehouseKey: whKey,
+      warehouseName: whObj.name,
+      quantity: qty,
+      unitPrice: p.price
+    });
+  });
+
+  if (hasInsufficientStock) {
+    showToast(insufficientMessage, "danger");
+    return;
+  }
+
+  // Výpočet celkové ceny
+  const totalPrice = items.reduce((acc, it) => acc + (it.quantity * it.unitPrice), 0);
+  const orderNumber = "ORD-2026-" + Math.floor(1000 + Math.random() * 9000);
+
+  // Provedení rezervace na skladech (ReservedQuantity dle ERD)
+  items.forEach(it => {
+    const p = products.find(prod => prod.id === it.productId);
+    if (p) {
+      if (!p.reserved) p.reserved = { praha: 0, brno: 0, ostrava: 0 };
+      p.reserved[it.warehouseKey] = (p.reserved[it.warehouseKey] || 0) + it.quantity;
+    }
+  });
+
+  // Vytvoření entity objednávky
+  const newOrder = {
+    id: "ord-" + Date.now(),
+    orderNumber,
+    customerId: orderCustomerSelect.value || "cst-" + Date.now(),
+    customerName: custName,
+    customerEmail: custEmail,
+    customerPhone: custPhone,
+    customerAddress: custAddress,
+    status: "Confirmed",
+    createdAt: new Date().toLocaleString("cs-CZ", { dateStyle: "short", timeStyle: "short" }),
+    totalPrice,
+    items
+  };
+
+  orders.unshift(newOrder);
+
+  closeCreateOrderModal();
+  render();
+  renderWarehouseView();
+  renderOrdersView();
+
+  showToast(`✅ Objednávka ${orderNumber} POTVRZENA (${totalPrice.toLocaleString("cs-CZ")} Kč). Položky byly zarezervovány na příslušných skladech expedice.`, "success");
+}
+
+// ===================================================================
+// MODÁL: DETAIL OBJEDNÁVKY & AUDIT VÝDEJE
+// ===================================================================
+window.viewOrderDetail = function(orderId) {
+  const ord = orders.find(item => item.id === orderId);
+  if (!ord || !orderDetailModal) return;
+
+  orderDetailTitle.textContent = `Detail objednávky: ${ord.orderNumber}`;
+
+  let badgeClass = "confirmed";
+  let statusText = "Potvrzeno (Zboží rezervováno na skladech)";
+  if (ord.status === "Dispatched") {
+    badgeClass = "dispatched";
+    statusText = "Expedováno zákazníkovi (Odpis ze zásob dokončen)";
+  } else if (ord.status === "Cancelled") {
+    badgeClass = "cancelled";
+    statusText = "Stornováno (Rezervace uvolněna)";
+  }
+
+  const itemsHtml = ord.items.map(it => {
+    const whObj = warehouses.find(w => w.key === it.warehouseKey) || { code: it.warehouseKey, name: it.warehouseName, badgeClass: "praha" };
+    return `
+      <tr>
+        <td><span class="sku-pill">${it.productSku}</span></td>
+        <td><strong>${escapeHtml(it.productName)}</strong></td>
+        <td>
+          <span class="wh-pill ${whObj.badgeClass}">${whObj.code}</span>
+          <small style="display: block; color: var(--text-dim); margin-top: 2px;">${whObj.name}</small>
+        </td>
+        <td><strong>${it.quantity} ks</strong></td>
+        <td>${it.unitPrice.toLocaleString("cs-CZ")} Kč</td>
+        <td><strong>${(it.quantity * it.unitPrice).toLocaleString("cs-CZ")} Kč</strong></td>
+      </tr>
+    `;
+  }).join("");
+
+  orderDetailContent.innerHTML = `
+    <div class="order-detail-meta">
+      <div class="order-meta-item">
+        <span class="order-meta-label">Stav objednávky</span>
+        <div style="margin-top: 4px;">
+          <span class="order-status-badge ${badgeClass}">${statusText}</span>
+        </div>
+      </div>
+      <div class="order-meta-item">
+        <span class="order-meta-label">Odběratel (Zákazník)</span>
+        <span class="order-meta-val">${escapeHtml(ord.customerName)}</span>
+        <small style="color: var(--text-dim);">${escapeHtml(ord.customerEmail)} • ${escapeHtml(ord.customerPhone || "Bez tel.")}</small>
+      </div>
+      <div class="order-meta-item">
+        <span class="order-meta-label">Dodací adresa</span>
+        <span class="order-meta-val">${escapeHtml(ord.customerAddress || "Osobní odběr")}</span>
+      </div>
+      <div class="order-meta-item">
+        <span class="order-meta-label">Čas vytvoření</span>
+        <span class="order-meta-val">${ord.createdAt}</span>
+      </div>
+    </div>
+
+    <h3 style="font-size: 0.92rem; text-transform: uppercase; letter-spacing: 0.05em; color: #60a5fa; margin-bottom: 10px;">
+      Rozpis položek & Dohledatelnost skladu výdeje (M:N)
+    </h3>
+    <table class="order-detail-items-table">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Produkt</th>
+          <th>Sklad výdeje (Audit)</th>
+          <th>Množství</th>
+          <th>Cena / ks</th>
+          <th>Celkem</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${itemsHtml}
+      </tbody>
+    </table>
+
+    <div class="order-summary-box" style="margin-top: 10px;">
+      <div class="order-summary-row total">
+        <span>Celková částka objednávky s DPH:</span>
+        <span style="font-size: 1.2rem; color: #60a5fa;">${ord.totalPrice.toLocaleString("cs-CZ")} Kč</span>
+      </div>
+    </div>
+  `;
+
+  // Tlačítka akcí dle stavu
+  orderDetailActions.innerHTML = "";
+  if (ord.status === "Confirmed") {
+    orderDetailActions.innerHTML = `
+      <button type="button" class="btn btn-secondary btn-danger" onclick="cancelOrder('${ord.id}')">Stornovat objednávku</button>
+      <button type="button" class="btn btn-primary" onclick="dispatchOrder('${ord.id}')">Expedovat objednávku ze skladů</button>
+    `;
+  } else {
+    orderDetailActions.innerHTML = `
+      <button type="button" class="btn btn-secondary" onclick="closeOrderDetailModal()">Zavřít</button>
+    `;
+  }
+
+  orderDetailModal.classList.add("active");
+};
+
+function closeOrderDetailModal() {
+  if (orderDetailModal) orderDetailModal.classList.remove("active");
+}
+
+window.dispatchOrder = function(orderId) {
+  const ord = orders.find(item => item.id === orderId);
+  if (!ord || ord.status !== "Confirmed") return;
+
+  // Definitivní odpis ze skladových zásob a zrušení rezervace
+  ord.items.forEach(it => {
+    const p = products.find(prod => prod.id === it.productId);
+    if (p) {
+      if (p.stocks[it.warehouseKey] !== undefined) {
+        p.stocks[it.warehouseKey] = Math.max(0, p.stocks[it.warehouseKey] - it.quantity);
+      }
+      if (p.reserved && p.reserved[it.warehouseKey] !== undefined) {
+        p.reserved[it.warehouseKey] = Math.max(0, p.reserved[it.warehouseKey] - it.quantity);
+      }
+    }
+  });
+
+  ord.status = "Dispatched";
+  closeOrderDetailModal();
+  render();
+  renderWarehouseView();
+  renderOrdersView();
+
+  showToast(`✅ Objednávka ${ord.orderNumber} byla úspěšně EXPEDOVÁNA ze skladů a položky odepsány ze stavu zásob.`, "success");
+};
+
+window.cancelOrder = function(orderId) {
+  const ord = orders.find(item => item.id === orderId);
+  if (!ord || ord.status !== "Confirmed") return;
+
+  if (confirm(`Opravdu chcete stornovat objednávku ${ord.orderNumber}? Rezervované zásoby budou vráceny do volného stavu.`)) {
+    // Vrácení rezervace zpět
+    ord.items.forEach(it => {
+      const p = products.find(prod => prod.id === it.productId);
+      if (p && p.reserved && p.reserved[it.warehouseKey] !== undefined) {
+        p.reserved[it.warehouseKey] = Math.max(0, p.reserved[it.warehouseKey] - it.quantity);
+      }
+    });
+
+    ord.status = "Cancelled";
+    closeOrderDetailModal();
+    render();
+    renderWarehouseView();
+    renderOrdersView();
+
+    showToast(`Objednávka ${ord.orderNumber} byla STORNOVÁNA a rezervované zásoby uvolněny.`, "warning");
+  }
 };
 
 // ===================================================================
@@ -753,7 +1509,6 @@ window.quickAdjustWarehouseStock = function(productId, warehouseKey, amount) {
 window.openTransferModal = function(productId = null, fromWhKey = null) {
   if (!transferModal) return;
 
-  // Naplnit selectbox produktů
   transferProductSelect.innerHTML = "";
   products.forEach(p => {
     const opt = document.createElement("option");
@@ -768,7 +1523,6 @@ window.openTransferModal = function(productId = null, fromWhKey = null) {
 
   if (fromWhKey) {
     transferFromSelect.value = fromWhKey;
-    // Nastavit cílový sklad na jiný než výchozí
     const otherWh = warehouses.find(w => w.key !== fromWhKey);
     if (otherWh) transferToSelect.value = otherWh.key;
   }
@@ -780,9 +1534,7 @@ window.openTransferModal = function(productId = null, fromWhKey = null) {
 };
 
 function closeTransferModal() {
-  if (transferModal) {
-    transferModal.classList.remove("active");
-  }
+  if (transferModal) transferModal.classList.remove("active");
 }
 
 function updateTransferAvailabilityHint() {
@@ -834,7 +1586,6 @@ function handleTransferSubmit(e) {
     return;
   }
 
-  // Provedení transakčního převodu
   p.stocks[fromWh] -= qty;
   p.stocks[toWh] = (p.stocks[toWh] || 0) + qty;
 
@@ -844,6 +1595,7 @@ function handleTransferSubmit(e) {
   closeTransferModal();
   render();
   renderWarehouseView();
+  renderOrdersView();
 
   showToast(`✅ Úspěšný meziskladový převod: ${qty}x "${p.name}" přesunuto z ${fromObj.name} do ${toObj.name}.`, "success");
 }
@@ -903,7 +1655,6 @@ function handleFormSubmit(e) {
   const stockOstrava = parseInt(document.getElementById("form-stock-ostrava").value) || 0;
 
   if (id) {
-    // Editace
     const index = products.findIndex(p => p.id === id);
     if (index !== -1) {
       products[index] = {
@@ -919,7 +1670,6 @@ function handleFormSubmit(e) {
       showToast(`Produkt ${name} byl úspěšně upraven.`, "success");
     }
   } else {
-    // Vytvoření nového
     const newProduct = {
       id: "prd-" + Date.now(),
       sku,
@@ -938,6 +1688,7 @@ function handleFormSubmit(e) {
   closeModal();
   render();
   renderWarehouseView();
+  renderOrdersView();
 }
 
 window.deleteProduct = function(id) {
@@ -949,10 +1700,10 @@ window.deleteProduct = function(id) {
     showToast(`Produkt ${p.name} byl vyřazen.`, "warning");
     render();
     renderWarehouseView();
+    renderOrdersView();
   }
 };
 
-// Rychlá úprava stavu skladu v tabulce produktů (+1 / -1 ks)
 window.quickAdjustStock = function(id, amount) {
   const p = products.find(item => item.id === id);
   if (!p) return;
@@ -981,9 +1732,10 @@ window.quickAdjustStock = function(id, amount) {
 
   render();
   renderWarehouseView();
+  renderOrdersView();
 };
 
-// Simulace zákaznického nákupu - ukázka klientských pravidel
+// Simulace zákaznického nákupu - generuje reálnou objednávku v systému
 function simulateClientOrder() {
   if (products.length === 0) return;
 
@@ -998,24 +1750,58 @@ function simulateClientOrder() {
       "danger"
     );
   } else {
-    let selectedWarehouse = "Praha";
+    let selectedWarehouseKey = "praha";
     if (targetProduct.stocks.brno > targetProduct.stocks.praha && targetProduct.stocks.brno >= targetProduct.stocks.ostrava) {
-      selectedWarehouse = "Brno";
-      targetProduct.stocks.brno -= requestedPieces;
+      selectedWarehouseKey = "brno";
     } else if (targetProduct.stocks.ostrava > targetProduct.stocks.praha) {
-      selectedWarehouse = "Ostrava";
-      targetProduct.stocks.ostrava -= requestedPieces;
-    } else {
-      targetProduct.stocks.praha -= requestedPieces;
+      selectedWarehouseKey = "ostrava";
     }
 
+    const whObj = warehouses.find(w => w.key === selectedWarehouseKey);
+
+    // Zarezervovat položku
+    if (!targetProduct.reserved) targetProduct.reserved = { praha: 0, brno: 0, ostrava: 0 };
+    targetProduct.reserved[selectedWarehouseKey] = (targetProduct.reserved[selectedWarehouseKey] || 0) + requestedPieces;
+
+    const randomCust = sampleCustomers[Math.floor(Math.random() * sampleCustomers.length)];
     const orderNumber = "ORD-2026-" + Math.floor(1000 + Math.random() * 9000);
-    showToast(
-      `✅ Objednávka ${orderNumber} POTVRZENA: 2x "${targetProduct.name}" (${(targetProduct.price * 2).toLocaleString("cs-CZ")} Kč). Položky byly úspěšně vyskladněny ze: Sklad ${selectedWarehouse}.`,
-      "success"
-    );
+    const totalPrice = targetProduct.price * requestedPieces;
+
+    const newOrder = {
+      id: "ord-" + Date.now(),
+      orderNumber,
+      customerId: randomCust.id,
+      customerName: randomCust.fullName,
+      customerEmail: randomCust.email,
+      customerPhone: randomCust.phone,
+      customerAddress: randomCust.address,
+      status: "Confirmed",
+      createdAt: new Date().toLocaleString("cs-CZ", { dateStyle: "short", timeStyle: "short" }),
+      totalPrice,
+      items: [
+        {
+          id: "item-" + Date.now(),
+          productId: targetProduct.id,
+          productSku: targetProduct.sku,
+          productName: targetProduct.name,
+          warehouseKey: selectedWarehouseKey,
+          warehouseName: whObj.name,
+          quantity: requestedPieces,
+          unitPrice: targetProduct.price
+        }
+      ]
+    };
+
+    orders.unshift(newOrder);
+
     render();
     renderWarehouseView();
+    renderOrdersView();
+
+    showToast(
+      `✅ Objednávka ${orderNumber} POTVRZENA: 2x "${targetProduct.name}" (${totalPrice.toLocaleString("cs-CZ")} Kč). Položky byly zarezervovány k expedici ze: ${whObj.name}.`,
+      "success"
+    );
   }
 }
 

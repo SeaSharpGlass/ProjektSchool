@@ -41,9 +41,10 @@
           <span>Sklady (3 lokace)</span>
           <span class="nav-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">3</span>
         </a>
-        <a href="#orders" class="nav-item disabled" title="Bude součástí Fáze 5">
+        <a href="#orders" class="nav-item" id="nav-orders">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
           <span>Objednávky (M:N)</span>
+          <span class="nav-badge" id="nav-orders-badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa;">3</span>
         </a>
       </nav>
 
@@ -275,6 +276,133 @@
           </div>
         </section>
       </section>
+
+      <!-- POHLED 3: Objednávky zákazníků (M:N vazba se sklady) -->
+      <section id="view-orders" class="view-panel" style="display: none;">
+        <!-- Top Bar -->
+        <header class="topbar">
+          <div>
+            <h1 class="page-title">Správa objednávek (M:N)</h1>
+            <p class="page-subtitle">Evidence zákazníků, vícepoložkových objednávek a dohledatelnost expedice ze skladů</p>
+          </div>
+          <div class="topbar-actions">
+            <button class="btn btn-secondary" id="btn-quick-sample-order">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+              <span>Generovat nákup klienta</span>
+            </button>
+            <button class="btn btn-primary" id="btn-open-create-order-modal">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <span>Vytvořit novou objednávku</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- KPI Metrics Cards for Orders -->
+        <section class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon blue">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">Celkem objednávek</span>
+              <span class="metric-value" id="kpi-orders-count">0</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon purple">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">Celkový obrat e-shopu</span>
+              <span class="metric-value" id="kpi-orders-revenue">0 Kč</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon amber">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">Čeká na expedici (Potvrzeno)</span>
+              <span class="metric-value" id="kpi-orders-confirmed">0</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon emerald">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">Expedováno / Dokončeno</span>
+              <span class="metric-value" id="kpi-orders-dispatched">0</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Orders Toolbar -->
+        <section class="toolbar-card">
+          <div class="search-input-wrapper">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="order-search-input" placeholder="Hledat číslo objednávky, jméno nebo e-mail zákazníka..." autocomplete="off">
+          </div>
+
+          <div class="filter-controls">
+            <div class="select-wrapper">
+              <select id="order-filter-status">
+                <option value="ALL">Všechny stavy</option>
+                <option value="Confirmed">Potvrzeno (K expedici)</option>
+                <option value="Dispatched">Expedováno (Dokončeno)</option>
+                <option value="Cancelled">Stornováno</option>
+              </select>
+            </div>
+
+            <div class="select-wrapper">
+              <select id="order-filter-warehouse">
+                <option value="ALL">Všechny expediční sklady</option>
+                <option value="praha">Expedice ze Skladu Praha (W-PRG)</option>
+                <option value="brno">Expedice ze Skladu Brno (W-BRN)</option>
+                <option value="ostrava">Expedice ze Skladu Ostrava (W-OST)</option>
+              </select>
+            </div>
+
+            <button class="btn btn-ghost" id="btn-reset-order-filters" title="Resetovat filtry objednávek">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+              <span>Reset</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Orders Data Table -->
+        <section class="table-card">
+          <div class="table-responsive">
+            <table class="data-table" id="orders-table">
+              <thead>
+                <tr>
+                  <th>Číslo objednávky</th>
+                  <th>Zákazník</th>
+                  <th>Čas vytvoření</th>
+                  <th>Položky (M:N) & Expediční sklady</th>
+                  <th>Celková částka</th>
+                  <th>Stav</th>
+                  <th class="text-right">Akce</th>
+                </tr>
+              </thead>
+              <tbody id="orders-tbody">
+                <!-- Dynamically populated via JS -->
+              </tbody>
+            </table>
+          </div>
+          <div class="table-footer">
+            <span id="orders-table-status">Zobrazeno 0 objednávek</span>
+            <div class="table-legend">
+              <span class="legend-dot in-stock"></span> Expedováno
+              <span class="legend-dot low-stock"></span> Potvrzeno (Rezervováno)
+              <span class="legend-dot out-stock"></span> Stornováno
+            </div>
+          </div>
+        </section>
+      </section>
     </main>
   </div>
 
@@ -413,6 +541,99 @@
           <button type="submit" class="btn btn-primary" id="transfer-btn-submit">Provést převod zásob</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: Vytvořit novou objednávku (M:N položky) -->
+  <div class="modal-backdrop" id="create-order-modal">
+    <div class="modal-container" style="max-width: 780px;">
+      <div class="modal-header">
+        <h2 class="modal-title" id="create-order-modal-title">Vytvořit novou objednávku (M:N)</h2>
+        <button class="modal-close-btn" id="create-order-btn-close">&times;</button>
+      </div>
+      <form id="create-order-form">
+        <!-- Sekce Zákazník -->
+        <div class="form-section-divider" style="margin-top: 0;">
+          <span>1. Údaje odběratele (Zákazník)</span>
+        </div>
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="order-customer-select">Předvolený zákazník (Syntetická data)</label>
+            <select id="order-customer-select">
+              <!-- Populated dynamically via JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="order-cust-name">Jméno a příjmení *</label>
+            <input type="text" id="order-cust-name" required placeholder="např. Jan Novák (Demo)">
+          </div>
+          <div class="form-group">
+            <label for="order-cust-email">E-mail *</label>
+            <input type="email" id="order-cust-email" required placeholder="jan.novak@example.cz">
+          </div>
+          <div class="form-group">
+            <label for="order-cust-phone">Telefon</label>
+            <input type="text" id="order-cust-phone" placeholder="+420 777 000 000">
+          </div>
+          <div class="form-group">
+            <label for="order-cust-address">Dodací adresa</label>
+            <input type="text" id="order-cust-address" placeholder="Karlova 15, 110 00 Praha">
+          </div>
+        </div>
+
+        <!-- Sekce Položky objednávky (M:N) -->
+        <div class="form-section-divider">
+          <span>2. Položky objednávky & Určení skladu expedice (Vazba M:N)</span>
+        </div>
+
+        <div id="order-items-builder" class="order-builder-list">
+          <!-- Dynamically added order item rows -->
+        </div>
+
+        <div style="margin: 12px 0 20px;">
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-add-order-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>+ Přidat další produkt do objednávky</span>
+          </button>
+        </div>
+
+        <!-- Součet objednávky -->
+        <div class="order-summary-box">
+          <div class="order-summary-row">
+            <span>Cena bez DPH:</span>
+            <span id="order-calc-subtotal">0 Kč</span>
+          </div>
+          <div class="order-summary-row">
+            <span>DPH (21 %):</span>
+            <span id="order-calc-vat">0 Kč</span>
+          </div>
+          <div class="order-summary-row total">
+            <span>Celková částka k úhradě:</span>
+            <span id="order-calc-total">0 Kč</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="create-order-btn-cancel">Zrušit</button>
+          <button type="submit" class="btn btn-primary" id="create-order-btn-submit">Potvrdit a rezervovat zásoby</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Detail objednávky & Audit výdeje -->
+  <div class="modal-backdrop" id="order-detail-modal">
+    <div class="modal-container" style="max-width: 780px;">
+      <div class="modal-header">
+        <h2 class="modal-title" id="order-detail-title">Detail objednávky</h2>
+        <button class="modal-close-btn" id="order-detail-btn-close">&times;</button>
+      </div>
+      <div id="order-detail-content">
+        <!-- Dynamically rendered order detail -->
+      </div>
+      <div class="modal-footer" id="order-detail-actions">
+        <!-- Action buttons rendered dynamically based on status -->
+      </div>
     </div>
   </div>
 
